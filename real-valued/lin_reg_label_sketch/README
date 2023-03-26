@@ -1,0 +1,56 @@
+File organization for folder lin_reg_label_sketch
+
+Running python3 bike.py will generate plots for the daily bike dataset. 
+
+To obtain the bike data in order to run bike.py:
+
+1. Visit https://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset and click "Data Folder."
+
+2. Download "Bike-Sharing-DataSet.zip" and unzip the folder.
+
+3. Move the files 'day.csv' and 'hour.csv' into the 'data' folder, which is located in the 'lin_reg_label_sketch' folder. 
+
+---------------------------------------------------------
+
+In general, I represent feature data and label data as pandas DataFrames:
+	- I set the ID column (the column on which we perform the joins) as the DataFrame's index. 
+	- The feature values and label values are stored under the DataFrame's columns. 
+
+I have included more detailed documentation inside each file. Below is a high-level overview of how the files fit together. 
+
+---------------------------------------------------------
+
+Differentially Private Join Construction Code (1. - 4.)
+
+1. hashes.py creates a Hashes object, whichsimulates the behavior of a random hash function and a random sign function. Together, they are used to simulate the behavior of a CountSketch data structure. 
+
+2. membership_sketch.py creates a Member_Sketch object. It takes in an Index object and uses a Hashes object to generate a "membership sketch." This is a (noisy) array that encodes information about which elements are present in the Index in a succinct way. 
+
+See Definition 2.1 (from the PDF linked in the main README) for more information.
+
+3. realvalued_sketch.py creates a RealValued_Sketch object. It takes in a column of a DataFrame and uses a Hashes object to generate a "value sketch." This is a (noisy) array that encodes the values in the DataFrame column in a succinct way. 
+
+See Definition 2.1 (from the PDF linked in the main README) for more information.
+
+4. dp_sketch.py creates a DP_Join object, which simulates the joinable private sketch. 
+It takes in two DataFrames, df_known and df_private. 
+
+- It uses a Member_Sketch object (constructed with the index of df_private) to append a 'membership' column to df_known. 
+
+- For each column of df_private, it also  uses a RealValued_Sketch object to append a private version of each column onto df_known as well.
+
+See Definition 2.2 (from the PDF linked in the main README) for more information.
+
+---------------------------------------------------------
+
+Experiment Organization Code (5. - 6.)
+
+5. regression_adjusted.py creates a AdjustedLinearRegression object (that enables both the oblivious correction and the data-dependent correction from the Overleaf), that has a fit() function and a predict() function. This file mimics the behavior of sklearn's LinearRegression object. 
+
+See Definition 2.1 (from the PDF linked in the main README) for more information.
+
+6. experiment.py creates an Experiment object that fits a variety of models (including AdjustedLinearRegression) on multiple independent joinable private sketches. It computes the losses of each test over all of the trials and returns aggregate information about the losses. 
+
+7. experiment_utils.py has some functions that help with experimental setup: for instance, a function to preprocess the data and function to plot the result. 
+
+8. bike.py runs an experiment on the UCI Bike dataset (download instructions at the top of this file). It uses the functions from experiment_utils.py and experiment.py to simulate joinable private sketches on the bike data and test various linear regression algorithms. 
