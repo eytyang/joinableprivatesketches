@@ -5,8 +5,8 @@ pd.options.mode.chained_assignment = None
 from statistics import median
 from dp_sketch import DP_Join
 from sklearn import metrics 
-from naive_bayes_weighted import NB_Weighted
-from naive_bayes_weighted_adjusted import Adjusted_NB_Weighted
+from naive_bayes import NB
+from naive_bayes_adjusted import AdjustedNB
 from test_time_correction import TestTimeCorrection
 
 import copy
@@ -16,9 +16,9 @@ warnings.filterwarnings("ignore", message = "X has feature names")
 
 control_experiment = 'Naive Bayes'
 
-method_to_obj = {'Naive Bayes': NB_Weighted(),
-	'Naive Bayes - Numerical Correction': Adjusted_NB_Weighted(), 
-	'Test Time Correction': TestTimeCorrection(NB_Weighted())}
+method_to_obj = {'Naive Bayes': NB(),
+	'Naive Bayes - Numerical Correction': AdjustedNB(), 
+	'Test Time Correction': TestTimeCorrection(NB())}
 
 class Experiment:
 	def __init__(self, experiment_list, f_train, l_train, f_test, l_test, f_names, l_name):
@@ -64,10 +64,7 @@ class Experiment:
 			self.df_dp.join(self.l_train, self.f_train)
 			self.df_dp_unfiltered = copy.copy(self.df_dp)
 
-			print("Private Sketch Preparation: All Random Steps Complete!")
-			self.df_dp.populate_nans()
 			self.df_dp.drop_entries()
-			print("Private Sketch Preparation Complete!")
 			self.df_dp_unfiltered.flip_labels(self.l_name[0])
 			self.df_dp.df = self.df_dp.df.replace(-1, 0)
 			self.df_dp_unfiltered.df = self.df_dp_unfiltered.df.replace(-1, 0)

@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore", message = "X has feature names")
 if __name__ == "__main__":
 	num_trials = 10
 
-	file = 'data/phishing.csv'
+	file = '../data/phishing.csv'
 	l_name = ['result']
 	experiment_list = ['Naive Bayes', 'Naive Bayes - Numerical Correction']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
@@ -24,7 +24,6 @@ if __name__ == "__main__":
 	f_names.remove('sfh-domain')
 	f_names.remove('web_traffic')
 	f_names.remove('links_pointing')
-	print(len(f_names))
 
 	f_train = f_train[f_train['favicons'] == -1]
 	f_names.remove('favicons')
@@ -40,7 +39,7 @@ if __name__ == "__main__":
 
 	results_df = pd.DataFrame()
 
-	eps_list = [10, 20, 30, 40, 50] # [2.5, 5.0, 7.5, 10.0, 12.5] 
+	eps_list = [20, 40, 60, 80, 100] # [2.5, 5.0, 7.5, 10.0, 12.5] 
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (len(f_names) + 1)
@@ -54,5 +53,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_trials=%i_epsm=even_largeeps' % num_trials
+	save_file = 'phishing_trials=%i_epsm=even_hugeeps' % num_trials
 	plot_results(results_df, experiment_list, save_file)
