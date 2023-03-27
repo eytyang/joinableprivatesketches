@@ -67,6 +67,7 @@ class Experiment:
 			print("Private Sketch Preparation: All Random Steps Complete!")
 			self.df_dp.populate_nans()
 			self.df_dp.drop_entries()
+			print(self.df_dp.head(5))
 			print("Private Sketch Preparation Complete!")
 			self.df_dp_unfiltered.flip_labels(self.l_name[0])
 			self.df_dp.df = self.df_dp.df.replace(-1, 0)

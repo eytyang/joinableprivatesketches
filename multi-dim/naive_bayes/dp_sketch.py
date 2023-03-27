@@ -28,7 +28,7 @@ class DP_Join:
 		self.known_cols = None
 
 	# Combines the value sketch and the membership sketch to perform a join
-	def join(self, df_known, df_private, num_features = 5):
+	def join(self, df_known, df_private, num_features = 3):
 		index_universe = df_private.index.union(df_known.index)
 		df_dp = df_known.copy()
 		self.known_cols = df_known.columns
