@@ -26,13 +26,13 @@ def sample_closest_vecs(num_features, num_rows, col_vecs, col_dict, i):
 		if new_col not in sample:
 			col_dict[new_col].append(i)
 			sample.append(new_col)
-	print(sample)
 	return col_dict
 
 class Feature_Selection:
-	def __init__(self, eps, num_buckets = None):
+	def __init__(self, eps, index_universe):
 		self.eps = eps
-		self.num_buckets = num_buckets
+		self.index_universe = index_universe
+		self.num_buckets = len(index_universe)
 		self.features = {}
 
 	# Here, we select num_features features per index
@@ -46,10 +46,6 @@ class Feature_Selection:
 			col_vecs[col] = df[col].to_numpy()
 			self.features[col] = []
 
-		matrix = df.to_numpy()
-		print(np.matmul(matrix.T, matrix))
-
-		for i in range(self.num_buckets):
+		for i in self.index_universe:
 			self.features = sample_closest_vecs(num_features, num_rows, col_vecs, self.features, i)
-
 

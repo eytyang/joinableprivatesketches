@@ -1,3 +1,4 @@
+from math import isnan
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  
@@ -33,14 +34,17 @@ class AdaBoost:
 			# Train an adjusted weak learner on the weighted data
 			weak_learner = Stump()
 			weak_learner.fit(features, labels)
-			# print(weak_learner.stump, weak_learner.choice)
+			print(weak_learner.stump, weak_learner.choice)
 
 			# Compute the error of the weak learner and the weight multiplier
 			labels['pred'] = pd.Series(weak_learner.predict(features[f_names]), index = labels.index)
-			err = labels[labels[l_name] != labels['pred']]['weight'].sum() / labels['weight'].sum()
+			err_df = labels.dropna()
+			err = err_df[err_df[l_name] != err_df['pred']]['weight'].sum() / err_df['weight'].sum()
 			if err < 0.01:
 				err = 0.01
+			print(err)
 			weight_multiplier = (1 - err) / err
+			labels['pred'] = labels['pred'].fillna(1.0 - labels[l_name])
 			labels['weight'] *= np.exp((labels[l_name] + labels['pred']) % 2 * log(weight_multiplier))
 
 			# Normalize the weights, propagate weights to the features DataFrame as well
@@ -50,7 +54,6 @@ class AdaBoost:
 
 			self.stump_list.append(weak_learner)
 			self.stump_weights.append(log(weight_multiplier))
-		# print(self.stump_weights)
 
 	# Returns the prediction of a single instance of features
 	def get_prediction(self, f_vec):

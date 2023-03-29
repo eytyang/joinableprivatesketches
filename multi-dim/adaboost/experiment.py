@@ -55,7 +55,7 @@ class Experiment:
 		return metrics.accuracy_score(self.l_test, pred) 
 
 	# Run any experiments on the joinable sketch
-	def run_dp_sketch_experiments(self, eps_memb, eps_val, num_trials = 25):
+	def run_dp_sketch_experiments(self, eps_memb, eps_val, num_features = 6, num_trials = 25):
 		trial_dict = {}
 		for experiment in self.experiment_list:
 			trial_dict[experiment] = []
@@ -63,17 +63,21 @@ class Experiment:
 		for trial in range(num_trials):
 			print('Trial Number %i' % (trial + 1))
 			self.df_dp = DP_Join(eps_memb, eps_val)
-			self.df_dp.join(self.l_train, self.f_train)
+			self.df_dp.join(self.l_train, self.f_train, num_features)
 			self.df_dp_unfiltered = copy.copy(self.df_dp)
 
+			print("Private Sketch Preparation: All Random Steps Complete!")
+			self.df_dp.populate_nans()
 			self.df_dp.drop_entries()
+			print("Private Sketch Preparation Complete!")
 			self.df_dp_unfiltered.flip_labels(self.l_name[0])
 			self.df_dp.df = self.df_dp.df.replace(-1, 0)
 			self.df_dp_unfiltered.df = self.df_dp_unfiltered.df.replace(-1, 0)
 
 			params = {'full_labels': self.l_train.replace(-1, 0), 
 				'eps_memb': eps_memb,
-				'eps_val': eps_val} 
+				'eps_val': eps_val, 
+				'num_features': num_features} 
 			for experiment in self.experiment_list:
 				loss = self.get_loss(experiment, params, True)
 				print(loss)

@@ -1,3 +1,5 @@
+from math import isnan
+from random import choice
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  
@@ -28,11 +30,13 @@ class Stump(BaseEstimator):
 			features_restricted = features.loc[labels_restricted.index]
 			for i in range(len(f_names) - 1):
 				dp_label_feat_count = features_restricted.groupby(f_names[i])['weight'].sum()
-				# TODO: FIX THIS
-				if 0.0 not in dp_label_feat_count.index:
-					dp_label_feat_count[0] = 0.0
-				if 1.0 not in dp_label_feat_count.index:
-					dp_label_feat_count[1] = 0.0
+				if 0 not in dp_label_feat_count:
+					if 1 not in dp_label_feat_count:
+						dp_label_feat_count = {0: 1, 1: 1}
+					else:
+						dp_label_feat_count = {0: 1, 1: dp_label_feat_count[1]}
+				if 1 not in dp_label_feat_count and 0 in dp_label_feat_count:
+					dp_label_feat_count = {0: dp_label_feat_count[0], 1: 1}
 
 				for f_val in [0, 1]:
 					self.feat_label_counts[i][f_val][l_val] = max(dp_label_feat_count[f_val], self.minimum)
@@ -102,7 +106,10 @@ class Stump(BaseEstimator):
 		pred = []
 		for i in f_test.index:
 			if self.stump is not None:
-				pred.append(self.choice[f_test.loc[i][f_test.columns[self.stump]]])
+				if isnan(f_test.loc[i][f_test.columns[self.stump]]):
+					pred.append(choice([0, 1]))
+				else:
+					pred.append(self.choice[f_test.loc[i][f_test.columns[self.stump]]])
 			else:
 				pred.append(self.choice)
 		return pred

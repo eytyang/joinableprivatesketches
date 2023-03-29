@@ -1,3 +1,5 @@
+from math import isnan
+from random import choice
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  
@@ -20,6 +22,7 @@ class AdjustedStump(BaseEstimator):
 		self.hall_prob_memb = 0.0
 		self.flip_prob_val = 0.0
 
+	# TODO: DOUBLECHECK THIS
 	def populate_counts(self, features, labels, full_labels):
 		f_names = features.columns
 		l_name = labels.columns[0]
@@ -32,15 +35,16 @@ class AdjustedStump(BaseEstimator):
 			features_restricted = features.loc[labels_restricted.index]
 			for i in range(len(f_names) - 1):
 				dp_label_feat_count = features_restricted.groupby(f_names[i])['weight'].sum()
-				if 0.0 not in dp_label_feat_count.index:
-					dp_label_feat_count[0] = 0.0
-				if 1.0 not in dp_label_feat_count.index:
-					dp_label_feat_count[1] = 0.0
+				if 0 not in dp_label_feat_count:
+					if 1 not in dp_label_feat_count:
+						dp_label_feat_count = {0: 1, 1: 1}
+					else:
+						dp_label_feat_count = {0: 1, 1: dp_label_feat_count[1]}
+				if 1 not in dp_label_feat_count and 0 in dp_label_feat_count:
+					dp_label_feat_count = {0: dp_label_feat_count[0], 1: 1}
 
 				for f_val in [0, 1]:
 					self.feat_label_counts[i][f_val][l_val] = max(dp_label_feat_count[f_val] - self.feat_label_halls[i][f_val][l_val], self.minimum)
-		# print(dp_label_count, self.label_counts, self.label_halls)
-		# print(self.feat_label_counts)
 
 	def pick_stump(self, features):
 		gini = []
@@ -77,9 +81,9 @@ class AdjustedStump(BaseEstimator):
 			self.stump = None
 			self.choice = self.choice[0]
 
-	def fit(self, features, labels, eps_memb, eps_val, full_labels):
+	def fit(self, features, labels, eps_memb, eps_val, full_labels, num_features = 6):
 		self.hall_prob_memb = 1.0 / (1.0 + exp(eps_memb))
-		self.flip_prob_val = exp(-1.0 * eps_val / len(features.columns)) / 2.0
+		self.flip_prob_val = exp(-1.0 * eps_val / num_features) / 2.0
 
 		# Off by 1 due to 'weight' column
 		for i in range(len(features.columns) - 1):
@@ -110,7 +114,10 @@ class AdjustedStump(BaseEstimator):
 		pred = []
 		for i in f_test.index:
 			if self.stump is not None:
-				pred.append(self.choice[f_test.loc[i][f_test.columns[self.stump]]])
+				if isnan(f_test.loc[i][f_test.columns[self.stump]]):
+					pred.append(choice([0, 1]))
+				else:
+					pred.append(self.choice[f_test.loc[i][f_test.columns[self.stump]]])
 			else:
 				pred.append(self.choice)
 		return pred

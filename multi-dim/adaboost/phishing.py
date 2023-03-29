@@ -11,11 +11,12 @@ warnings.filterwarnings("ignore", message = "A column-vector y was passed when a
 warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
-	num_trials = 25
+	num_trials = 10
+	num_features = 6
 
-	file = 'phishing.csv'
+	file = 'data/phishing.csv'
 	l_name = ['result']
-	experiment_list = ['AdaBoost', 'AdaBoost - Numerical Correction', 'Test Time Correction']
+	experiment_list = ['AdaBoost', 'AdaBoost - Numerical Correction']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 
 	# f_names = ['dns_record', 'favicons', 'https', \
@@ -28,11 +29,10 @@ if __name__ == "__main__":
 	f_names.remove('links_pointing')
 
 	f_train = f_train[f_train['favicons'] == -1]
+	# COMMENT THIS OUT
+	l_train = l_train.loc[f_train.index]
 	f_names.remove('favicons')
 	f_train = f_train[f_names]
-	# for i in l_train.index:
-	# 	if i not in f_train.index:
-	# 		l_train[l_name].loc[i] = 1
 	f_test = f_test[f_test['favicons'] == -1]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
 
@@ -42,13 +42,13 @@ if __name__ == "__main__":
 
 	results_df = pd.DataFrame()
 
-	eps_list = [20.0, 40.0, 60.0, 80.0, 100.0] # [8.0, 12.0, 16.0, 20.0, 24.0]
+	eps_list = [20.0, 40.0, 60.0, 80.0, 100.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (1 + len(f_names))
 		eps_val = eps - eps_memb
 
-		loss_dict = experiment.run_dp_sketch_experiments(eps_memb, eps_val, num_trials)
+		loss_dict = experiment.run_dp_sketch_experiments(eps_memb, eps_val, num_features, num_trials)
 		loss_dict['Epsilon'] = [eps]
 
 		eps_df = pd.DataFrame(loss_dict).set_index('Epsilon')
@@ -56,5 +56,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_trials=%i_epsm=even_5boost_hugeeps' % num_trials
+	save_file = 'phishing_trials=%i_epsm=even_5boost_hugeeps_feat=%i' % (num_trials, num_features)
 	plot_results(results_df, experiment_list, save_file)

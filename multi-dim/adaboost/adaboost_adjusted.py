@@ -47,6 +47,7 @@ class AdjustedAdaBoost:
 
 	# Update estimates of hallucination weights based on the weight multiplier
 	def update_hall_counts(self, f_names, labels, weak_classifier, weight_multiplier, normalizer):
+		# TODO: JUSTIFY THIS
 		weight_multiplier *= 0.5
 
 		# Case: the stump does not classify based on a feature
@@ -80,11 +81,11 @@ class AdjustedAdaBoost:
 
 	# features and labels come from the noisy join
 	# full_labels is the set of full labels. 
-	def fit(self, features, labels, eps_memb, eps_val, full_labels):
+	def fit(self, features, labels, eps_memb, eps_val, full_labels, num_features = 6):
 		f_names = features.columns
 		l_name = labels.columns[0]
 		self.est_hall_counts(f_names, labels, eps_memb, full_labels)
-		self.flip_prob_val = exp(-1.0 * eps_val / len(features.columns)) / 2.0
+		self.flip_prob_val = exp(-1.0 * eps_val / num_features) / 2.0
 		self.stump_list = []
 		self.stump_weights = []
 
@@ -95,27 +96,30 @@ class AdjustedAdaBoost:
 		for t in range(self.n_estimators):
 			# Train an adjusted weak learner on the weighted data
 			weak_learner = AdjustedStump(self.label_halls, self.feat_label_halls)
-			weak_learner.fit(features, labels, eps_memb, eps_val, full_labels)
-			# print(weak_learner.stump, weak_learner.choice)
+			weak_learner.fit(features, labels, eps_memb, eps_val, full_labels, num_features)
+			print(weak_learner.stump, weak_learner.choice)
 
 			# Compute the error of the weak learner and the weight multiplier
+			# TODO: FIX THIS WITH NONES
 			labels['pred'] = pd.Series(weak_learner.predict(features[f_names]), index = labels.index)
-			# print(labels['weight'].sum(), self.label_halls)
+			err_df = labels.dropna()
 			if weak_learner.stump is not None:
-				err = (labels[labels[l_name] != labels['pred']]['weight'].sum() - \
+				err = (err_df[err_df[l_name] != err_df['pred']]['weight'].sum() - \
 					self.feat_label_halls[weak_learner.stump][0][1 - weak_learner.choice[0]] - \
 					self.feat_label_halls[weak_learner.stump][1][1 - weak_learner.choice[1]]) / \
-					(labels['weight'].sum() - self.feat_label_halls[weak_learner.stump][0][0] - \
+					(err_df['weight'].sum() - self.feat_label_halls[weak_learner.stump][0][0] - \
 					self.feat_label_halls[weak_learner.stump][0][1] - \
 					self.feat_label_halls[weak_learner.stump][1][0] - \
 					self.feat_label_halls[weak_learner.stump][1][1])
 			else:
-				err = (labels[labels[l_name] != labels['pred']]['weight'].sum() - \
+				err = (err_df[err_df[l_name] != err_df['pred']]['weight'].sum() - \
 					self.label_halls[1 - weak_learner.choice]) / \
-					(labels['weight'].sum() - self.label_halls[0] - self.label_halls[1])
+					(err_df['weight'].sum() - self.label_halls[0] - self.label_halls[1])
+			print(err)
 			if err < 0.01:
 				err = 0.01
 			weight_multiplier = (1 - err) / err 
+			labels['pred'] = labels['pred'].fillna(1.0 - labels[l_name])
 			labels['weight'] *= np.exp((labels[l_name] + labels['pred']) % 2 * log(weight_multiplier))
 
 			# Normalize the weights, propagate weights to the features DataFrame as well
