@@ -26,14 +26,16 @@ class Binary_Sketch:
 		self.index_universe = index_universe
 		self.num_buckets = num_buckets
 		self.features = None
+		self.probabilities = None
 
-	def get_features(self, df, num_features = 6):
+	def get_features(self, df, num_features):
 		feature_selector = Feature_Selection(self.eps, self.index_universe)
 		feature_selector.populate(df, num_features)
 		self.features = feature_selector.features
-		return self.features
+		self.probabilities = feature_selector.probabilities
+		return self.features, self.probabilities
 
-	def get_signs(self, col_names, num_features = 6):
+	def get_signs(self, col_names, num_features):
 		flips = {}
 		for col in col_names:
 			flips[col] = []

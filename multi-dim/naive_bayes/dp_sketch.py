@@ -25,10 +25,11 @@ class DP_Join:
 		self.num_buckets = num_buckets
 		self.df = None
 		self.features = None
+		self.probabilities = None
 		self.known_cols = None
 
 	# Combines the value sketch and the membership sketch to perform a join
-	def join(self, df_known, df_private, num_features = 6):
+	def join(self, df_known, df_private, num_features):
 		index_universe = df_private.index.union(df_known.index)
 		df_dp = df_known.copy()
 		self.known_cols = df_known.columns
@@ -41,15 +42,12 @@ class DP_Join:
 		df_dp = decode_sketch(df_dp, 'membership', memb)
 		
 		val = Binary_Sketch(self.eps_val, index_universe, self.num_buckets)
-		self.features = val.get_features(df_private, num_features)
+		self.features, self.probabilities = val.get_features(df_private, num_features)
 		signs = val.get_signs(df_private.columns, num_features)
-		 
-		# for col in df_private:
-		# 	print(len(self.features[col]), signs[col].value_counts())
 
 		df_private = df_private.mul(signs)
 		df_dp = df_dp.join(df_private)
-		self.df = df_dp.applymap(lambda x: x if x is not None else np.random.choice([-1, 1]))
+		self.df = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
 
 	# TODO: DO THIS MORE CLEANLY USING LAMBDAS / MAPS
 	def populate_nans(self):

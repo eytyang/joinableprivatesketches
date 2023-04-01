@@ -11,8 +11,8 @@ warnings.filterwarnings("ignore", message = "A column-vector y was passed when a
 warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
-	num_trials = 10
-	num_features = 6
+	num_trials = 25
+	num_features = 1
 
 	file = 'data/phishing.csv'
 	l_name = ['result']
@@ -26,9 +26,9 @@ if __name__ == "__main__":
 	f_names.remove('web_traffic')
 	f_names.remove('links_pointing')
 
-	f_train = f_train[f_train['favicons'] == -1]
+	# f_train = f_train[f_train['favicons'] == -1]
 	# COMMENT THIS OUT!
-	l_train = l_train.loc[f_train.index]
+	# l_train = l_train.loc[f_train.index]
 	f_names.remove('favicons')
 	f_train = f_train[f_names]
 
@@ -39,16 +39,16 @@ if __name__ == "__main__":
 	print(len(f_train), len(l_train))
 
 	experiment = Experiment(experiment_list, f_train, l_train, f_test, l_test, f_names, l_name)
-	loss_ctrl = experiment.get_loss()
+	loss_ctrl = experiment.get_loss(len(f_names))
 	print(loss_ctrl)
 
 	results_df = pd.DataFrame()
 
-	eps_list = [5.0] 
+	eps_list = [30.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
-		eps_memb = eps / (num_features + 1)
-		eps_val = eps - eps_memb
+		eps_memb = 30.0
+		eps_val = eps
 
 		loss_dict = experiment.run_dp_sketch_experiments(eps_memb, eps_val, num_features, num_trials)
 		loss_dict['Epsilon'] = [eps]
@@ -58,5 +58,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_trials=%i_epsm=even_hugeeps_feat=%i' % (num_trials, num_features)
+	save_file = 'phishing_nohallbig_trials=%i_epsm=even_minisculeeps_feat=%i' % (num_trials, num_features)
 	plot_results(results_df, experiment_list, save_file)
