@@ -5,10 +5,10 @@ import scipy as sc
 from math import exp
 from hashes import Hashes
 
-def rand_unit_vec(length):
+def rand_unit_vec(length, scale_factor):
 	gaussian = np.random.normal(size = length)
 	# TODO: FIX THIS HACK
-	return ((11274) ** (0.5)) * gaussian / np.linalg.norm(gaussian) 
+	return scale_factor * gaussian / np.linalg.norm(gaussian) 
 
 # Takes in a query vector and a dictionary mapping between 
 # column name and the column vector
@@ -23,14 +23,15 @@ def get_closest_vec(query, col_vecs):
 			closest_col = [col]
 	return choice(closest_col)
 
-def sample_closest_vecs(num_features, vec_len, col_vecs, col_dict, i):
+def sample_closest_vecs(num_features, vec_len, col_vecs, scale_factor):
+	if num_features == vec_len:
+		return [1.0 for col in col_vecs.keys()]
 	sample = []
 	while len(sample) < num_features:
-		new_col = get_closest_vec(rand_unit_vec(vec_len), col_vecs)
-		if new_col not in sample:
-			col_dict[new_col].append(i)
+		new_col = get_closest_vec(rand_unit_vec(vec_len, scale_factor), col_vecs)
+		if new_col not in sample:			
 			sample.append(new_col)
-	return col_dict
+	return [None if col not in sample else 1.0 for col in col_vecs.keys()]
 
 class Feature_Selection:
 	def __init__(self, eps, index_universe):
@@ -56,12 +57,14 @@ class Feature_Selection:
 		print("Lin Alg Preprocessing Complete")	
 
 		counter = 0
+		scale_factor = (len(df)) ** (0.5)
+		self.features = pd.DataFrame(index = self.index_universe, columns = col_names)
 		for i in self.index_universe:
-			self.features = sample_closest_vecs(num_features, len(col_names), col_vecs, self.features, i)
+			self.features.loc[i] = sample_closest_vecs(num_features, len(col_names), col_vecs, scale_factor)
 			counter += 1
-			if counter % 1000 == 0:
+			if counter % 10000 == 0:
 				print("Sampled %i Rows" % counter)
 
 		for col in col_names:
-			self.probabilities[col] = len(self.features[col]) / (self.num_buckets)
+			self.probabilities[col] = len(self.features[col].dropna()) / len(self.index_universe)
 

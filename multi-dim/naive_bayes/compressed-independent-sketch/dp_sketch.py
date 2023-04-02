@@ -25,33 +25,37 @@ class DP_Join:
 		self.num_buckets = num_buckets
 		self.df = None
 		self.features = None
+		self.probabilities = None
 		self.known_cols = None
 
 	# Combines the value sketch and the membership sketch to perform a join
-	def join(self, df_known, df_private, num_features = 6):
+	def join(self, df_known, df_private, num_features):
 		index_universe = df_private.index.union(df_known.index)
 		df_dp = df_known.copy()
 		self.known_cols = df_known.columns
 
-		memb = Member_Sketch(self.eps_memb, index_universe, self.num_buckets)
-		memb.populate(df_private, num_features)
-		self.features = memb.features
+		memb = Member_Sketch(self.eps_memb, index_universe)
+		memb.populate(df_private)
+
+		# TODO: THIS IS A HACK; FIX THIS
+		self.num_buckets = memb.num_buckets
 		df_dp = decode_sketch(df_dp, 'membership', memb)
 		
-		num_cols = len(df_private.columns)
-		for col in df_private.columns:
-			new_col = {}
-			val = Binary_Sketch(self.eps_val / num_features, index_universe, self.num_buckets)
-			val.populate(df_private[col])
-			df_dp = decode_sketch(df_dp, col, val)				
-		self.df = df_dp
+		val = Binary_Sketch(self.eps_val, index_universe, self.num_buckets)
+		self.features, self.probabilities = val.get_features(df_private, num_features)
+		# TODO: Make this more streamlined, somehow
+		for col in self.known_cols:
+			self.features[col] = pd.Series([1.0 for i in index_universe], index = index_universe)
+		self.features['membership'] = pd.Series([1.0 for i in index_universe], index = index_universe)
+		
+		signs = val.get_signs(df_private.columns, num_features)
+		df_private = df_private.mul(signs)
+		df_dp = df_dp.join(df_private)
+		self.df = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
 
 	# TODO: DO THIS MORE CLEANLY USING LAMBDAS / MAPS
 	def populate_nans(self):
-		for col in self.df.columns:
-			if col in self.known_cols or col == 'membership' or col == 'ord':
-				continue
-			self.df[col].iloc[self.features[col]] = None
+		self.df = self.df.mul(self.features)
 
 	def drop_entries(self):
 		self.df = self.df[self.df['membership'] >= 1]

@@ -10,12 +10,12 @@ def two_sided_geom(p):
 		return np.random.geometric(1.0 - p) - np.random.geometric(1.0 - p) 
 
 # Implement DP sign flips:
-def sample_dp_signs(eps, num_features):
-	keep_prob = (exp(eps) - 1) / (exp(eps) + 2 ** (num_features) - 1)
+def sample_dp_signs(eps, num_features, total_features):
+	keep_prob = (exp(eps) - 1) / (exp(eps) + (2 ** (num_features)) - 1)
 	if np.random.uniform() < keep_prob:
-		return [1 for i in range(num_features)]
+		return [1 for i in range(total_features)]
 	else:
-		return [choice([-1, 1]) for i in range(num_features)]
+		return [choice([-1, 1]) for i in range(total_features)]
 
 class Binary_Sketch:
 	def __init__(self, eps, index_universe, num_buckets = None):
@@ -36,18 +36,9 @@ class Binary_Sketch:
 		return self.features, self.probabilities
 
 	def get_signs(self, col_names, num_features):
-		flips = {}
-		for col in col_names:
-			flips[col] = []
+		flips = pd.DataFrame(index = self.index_universe, columns = col_names)
 
 		for i in self.index_universe:
-			signs = sample_dp_signs(self.eps, num_features)
-			counter = 0
-			for col in col_names:
-				if i in self.features[col]:
-					flips[col].append(signs[counter])
-					counter += 1
-				else:
-					flips[col].append(1)
+			flips.loc[i] = sample_dp_signs(self.eps, num_features, len(col_names))
 
-		return pd.DataFrame(flips, index = self.index_universe)
+		return flips

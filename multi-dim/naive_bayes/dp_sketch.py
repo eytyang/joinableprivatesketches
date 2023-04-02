@@ -43,6 +43,10 @@ class DP_Join:
 		
 		val = Binary_Sketch(self.eps_val, index_universe, self.num_buckets)
 		self.features, self.probabilities = val.get_features(df_private, num_features)
+		# TODO: Make this more streamlined, somehow
+		for col in self.known_cols:
+			self.features[col] = pd.Series([1.0 for i in index_universe], index = index_universe)
+		self.features['membership'] = pd.Series([1.0 for i in index_universe], index = index_universe)
 		signs = val.get_signs(df_private.columns, num_features)
 
 		df_private = df_private.mul(signs)
@@ -51,11 +55,7 @@ class DP_Join:
 
 	# TODO: DO THIS MORE CLEANLY USING LAMBDAS / MAPS
 	def populate_nans(self):
-		for col in self.features:
-			self.features[col] = [j for j in self.df.index if j not in self.features[col]]
-
-		for col in self.features:
-			self.df[col].loc[self.features[col]] = None
+		self.df = self.df.mul(self.features)
 
 	def drop_entries(self):
 		self.df = self.df[self.df['membership'] >= 1]

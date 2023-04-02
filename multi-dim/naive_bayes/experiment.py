@@ -31,7 +31,7 @@ class Experiment:
 		self.df_dp_unfiltered = None
 
 	# Get control loss
-	def get_loss(self, num_features, experiment = control_experiment, params = {}, partial_params = {}, is_dp = False):
+	def get_loss(self, num_features, experiment = control_experiment, params = {}, is_dp = False):
 		method_to_obj = {'Naive Bayes': NB_Weighted(num_features),
 			'Naive Bayes - Numerical Correction': Adjusted_NB_Weighted(num_features), 
 			'Test Time Correction': TestTimeCorrection(NB_Weighted(num_features))}
@@ -43,7 +43,7 @@ class Experiment:
 			elif experiment != control_experiment:
 				classifier.fit(self.df_dp.df[self.f_names], self.df_dp.df[self.l_name], **params)
 			elif experiment == control_experiment:
-				classifier.fit(self.df_dp.df[self.f_names], self.df_dp.df[self.l_name], **partial_params)
+				classifier.fit(self.df_dp.df[self.f_names], self.df_dp.df[self.l_name])
 		else:
 			classifier = NB_Weighted(len(self.f_names))
 			classifier.fit(self.df_ctrl[self.f_names], self.df_ctrl[self.l_name])
@@ -67,6 +67,7 @@ class Experiment:
 
 			print("Private Sketch Preparation: All Random Steps Complete!")
 			self.df_dp.populate_nans()
+			print("Private Sketch Preparation: NaNs Populated!")
 			self.df_dp.drop_entries()
 			print("Private Sketch Preparation Complete!")
 			self.df_dp_unfiltered.flip_labels(self.l_name[0])
@@ -77,10 +78,10 @@ class Experiment:
 			params = {'full_labels': self.l_train.replace(-1, 0), 
 				'eps_memb': eps_memb,
 				'eps_val': eps_val, 
+				'num_features': num_features,
 				'probabilities': self.df_dp.probabilities} 
-			partial_params = {'probabilities': self.df_dp.probabilities}
 			for experiment in self.experiment_list:
-				loss = self.get_loss(num_features, experiment, params, partial_params, True)
+				loss = self.get_loss(num_features, experiment, params, True)
 				print(loss)
 				trial_dict[experiment].append(loss)
 

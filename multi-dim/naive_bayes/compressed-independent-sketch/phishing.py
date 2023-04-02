@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-pd.options.mode.chained_assignment = None  
 
 from experiment import Experiment
 from experiment_utils import center, prep_data, uniform_subsample, plot_results
@@ -11,8 +10,8 @@ warnings.filterwarnings("ignore", message = "A column-vector y was passed when a
 warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
-	num_trials = 10
-	num_features = 6
+	num_trials = 25
+	num_features = 22
 
 	file = '../data/phishing.csv'
 	l_name = ['result']
@@ -26,21 +25,25 @@ if __name__ == "__main__":
 	f_names.remove('web_traffic')
 	f_names.remove('links_pointing')
 
-	f_train = f_train[f_train['favicons'] == -1]
+	# f_train = f_train[f_train['favicons'] == -1]
+	# COMMENT THIS OUT!
+	# l_train = l_train.loc[f_train.index]
 	f_names.remove('favicons')
 	f_train = f_train[f_names]
-	f_test = f_test[f_test['favicons'] == -1]
+
+	# TODO: WHY DO THIS?
+	# f_test = f_test[f_test['favicons'] == -1]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
 	print(l_test[l_name].value_counts())
 	print(len(f_train), len(l_train))
 
 	experiment = Experiment(experiment_list, f_train, l_train, f_test, l_test, f_names, l_name)
-	loss_ctrl = experiment.get_loss()
+	loss_ctrl = experiment.get_loss(len(f_names))
 	print(loss_ctrl)
 
 	results_df = pd.DataFrame()
 
-	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0] 
+	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0] # [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (num_features + 1)
@@ -54,5 +57,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_trials=%i_epsm=even_hugeeps_feat=%i' % (num_trials, num_features)
+	save_file = 'phishing_hall_trials=%i_epsm=even_largeeps_feat=%i' % (num_trials, num_features)
 	plot_results(results_df, experiment_list, save_file)

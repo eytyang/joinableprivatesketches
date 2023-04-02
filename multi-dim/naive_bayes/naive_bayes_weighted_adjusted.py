@@ -26,7 +26,7 @@ class Adjusted_NB_Weighted:
 
 		for l_val in [0, 1]:
 			adjusted_label_count = max(self.minimum, (dp_label_count[l_val] - \
-				self.hall_prob_memb * original_label_count[l_val]) / (1 - 2 * self.hall_prob_memb))
+				self.hall_prob_memb * original_label_count[l_val]) / (1 - 2 * self.hall_prob_memb) + self.minimum)
 			self.label_counts[l_val] = adjusted_label_count
 
 			labels_restricted = labels[labels[l_name] == l_val]
@@ -41,9 +41,9 @@ class Adjusted_NB_Weighted:
 					if 1 not in dp_label_feat_count:
 						dp_label_feat_count = {0: self.minimum, 1: self.minimum}
 					else:
-						dp_label_feat_count = {0: self.minimum, 1: dp_label_feat_count[1]}
+						dp_label_feat_count = {0: self.minimum, 1: dp_label_feat_count[1] + self.minimum}
 				if 1 not in dp_label_feat_count and 0 in dp_label_feat_count:
-					dp_label_feat_count = {0: dp_label_feat_count[0], 1: self.minimum}
+					dp_label_feat_count = {0: dp_label_feat_count[0] + self.minimum, 1: self.minimum}
 
 				p = probabilities[f_names[i]]
 				# p = (dp_label_feat_count[0] + dp_label_feat_count[1]) / (adjusted_label_count * (1 - self.hall_prob_memb) \
@@ -52,37 +52,37 @@ class Adjusted_NB_Weighted:
 					if p < 0.00:
 						self.feat_label_counts[i][f_val][l_val] = self.minimum
 					else:
+						# print(self.hall_prob_memb, self.flip_prob_val, p)
+						# print(dp_label_feat_count[f_val], self.flip_prob_val * (1.0 - self.hall_prob_memb) * adjusted_label_count * p, \
+						# 	(self.hall_prob_memb / 2.0) * (original_label_count[l_val] - adjusted_label_count) * p)
+						# print(dp_label_feat_count[f_val] - self.flip_prob_val * (1.0 - self.hall_prob_memb) * adjusted_label_count * p \
+						# 	- (self.hall_prob_memb / 2.0) * (original_label_count[l_val] - adjusted_label_count) * p)
 						self.feat_label_counts[i][f_val][l_val] = \
 							max((dp_label_feat_count[f_val] - self.flip_prob_val * (1.0 - self.hall_prob_memb) * adjusted_label_count * p \
 							- (self.hall_prob_memb / 2.0) * (original_label_count[l_val] - adjusted_label_count) * p) \
-							/ ((1.0 - self.hall_prob_memb) * (1.0 - 2.0 * self.flip_prob_val)) + self.minimum, self.minimum)
+							/ ((1.0 - self.hall_prob_memb) * (1.0 - 2.0 * self.flip_prob_val)) + self.minimum, self.minimum) # / ((1.0 - self.hall_prob_memb) * (1.0 - 2.0 * self.flip_prob_val)))
 							
-						# print(original_label_count, adjusted_label_count)
-						# print(dp_label_feat_count[f_val], self.flip_prob_val * (1.0 - self.hall_prob_memb) * adjusted_label_count * p, (self.hall_prob_memb / 2.0) * (original_label_count[l_val] - adjusted_label_count) * p)
-
 		for i in range(len(f_names)):
 			self.non_nan_counts[i] = self.feat_label_counts[i].sum()
 
-	def fit(self, features, labels, eps_memb, eps_val, full_labels, probabilities):
+	def fit(self, features, labels, eps_memb, eps_val, full_labels, num_features, probabilities):
 		self.hall_prob_memb = 1.0 / (1.0 + exp(eps_memb))
-		self.flip_prob_val = 2 ** (self.num_features - 1) / (exp(eps_val) + 2 ** (self.num_features) - 1)
+		self.flip_prob_val = (2 ** (num_features - 1)) / (exp(eps_val) + (2 ** num_features) - 1)
 
 		for i in range(len(features.columns)):
 			self.feat_label_counts[i]= np.zeros((2, 2))
 
 		self.populate_counts(features, labels, full_labels, probabilities)
-		# print(self.label_counts, self.feat_label_counts, probabilities)
+		# print(self.label_counts, self.feat_label_counts)
 
 	def compute_log_likelihood(self, feature_vec, l_val):
 		label_count = self.label_counts[l_val]
 		if label_count <= 0.0:
 		 	return -1 * np.inf
-		log_likelihood = log(label_count / (self.label_counts[0] + self.label_counts[1])) * ((self.label_counts[0] + self.label_counts[1]) * self.num_features / 22.0)
+		log_likelihood = log(label_count) * ((self.label_counts[0] + self.label_counts[1]) * self.num_features / len(feature_vec))
 		for i in range(len(feature_vec)):
-			if self.feat_label_counts[i][feature_vec[i]][l_val] == 0:
-			 	return -1 * np.inf
-			log_likelihood += self.non_nan_counts[i] * log(self.feat_label_counts[i][feature_vec[i]][l_val] / \
-				self.label_counts[l_val])
+			log_likelihood += self.non_nan_counts[i] * log(self.feat_label_counts[i][int(feature_vec[i])][l_val] / \
+				(self.feat_label_counts[i][0][l_val] + self.feat_label_counts[i][1][l_val]))
 		return log_likelihood
 
 	def classify(self, feature_vec):
