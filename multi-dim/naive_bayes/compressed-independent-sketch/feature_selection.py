@@ -5,33 +5,32 @@ import scipy as sc
 from math import exp
 from hashes import Hashes
 
-def rand_unit_vec(length, scale_factor):
+def rand_unit_vec(length, scaling):
 	gaussian = np.random.normal(size = length)
-	# TODO: FIX THIS HACK
-	return scale_factor * gaussian / np.linalg.norm(gaussian) 
+	return scaling * gaussian / np.linalg.norm(gaussian)
 
 # Takes in a query vector and a dictionary mapping between 
 # column name and the column vector
-def get_closest_vec(query, col_vecs):
+def get_closest_vec(mat, vec_norm):
 	min_dist = np.inf
 	closest_col = []
-	for col in col_vecs:
-		if np.linalg.norm(query - col_vecs[col]) == min_dist:
-			closest_col.append(col) 
-		elif np.linalg.norm(query - col_vecs[col]) < min_dist:
-			min_dist = np.linalg.norm(query - col_vecs[col])
-			closest_col = [col]
-	return choice(closest_col)
+	for i in range(mat.shape[0]):
+		query = rand_unit_vec(mat.shape[0], vec_norm)
+		dist = np.linalg.norm(query - mat[:, i])
+		if dist < min_dist:
+			min_dist = dist
+			closest_col = i
+	return closest_col
 
-def sample_closest_vecs(num_features, vec_len, col_vecs, scale_factor):
-	if num_features == vec_len:
-		return [1.0 for col in col_vecs.keys()]
+def sample_closest_vecs(num_features, mat, vec_norm):
+	if num_features == mat.shape[0]:
+		return [1.0 for i in range(mat.shape[0])]
 	sample = []
 	while len(sample) < num_features:
-		new_col = get_closest_vec(rand_unit_vec(vec_len, scale_factor), col_vecs)
+		new_col = get_closest_vec(mat, vec_norm)
 		if new_col not in sample:			
 			sample.append(new_col)
-	return [None if col not in sample else 1.0 for col in col_vecs.keys()]
+	return [None if i not in sample else 1.0 for i in range(mat.shape[0])]
 
 class Feature_Selection:
 	def __init__(self, eps, index_universe):
@@ -48,21 +47,19 @@ class Feature_Selection:
 		num_rows = len(df.index)
 
 		# Get columns of df as a list of vectors
-		col_vecs = {}
-		cov_matrix = np.matmul(df.to_numpy().T, df.to_numpy())
-		sqrt_matrix = sc.linalg.sqrtm(cov_matrix)
-		for i in range(len(col_names)):
-			self.features[col_names[i]] = []
-			col_vecs[col_names[i]] = sqrt_matrix[:,i]
+		data = df.to_numpy()
+		gram = np.matmul(data.T, data)
+		mat = sc.linalg.sqrtm(gram)
+		vec_norm = len(data) ** 0.5
 		print("Lin Alg Preprocessing Complete")	
 
 		counter = 0
-		scale_factor = (len(df)) ** (0.5)
+		# scale_factor = (len(df)) ** (0.5)
 		self.features = pd.DataFrame(index = self.index_universe, columns = col_names)
 		for i in self.index_universe:
-			self.features.loc[i] = sample_closest_vecs(num_features, len(col_names), col_vecs, scale_factor)
+			self.features.loc[i] = sample_closest_vecs(num_features, mat, vec_norm)
 			counter += 1
-			if counter % 10000 == 0:
+			if counter % 1000 == 0:
 				print("Sampled %i Rows" % counter)
 
 		for col in col_names:

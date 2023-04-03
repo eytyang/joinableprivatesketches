@@ -11,9 +11,9 @@ warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
 	num_trials = 25
-	num_features = 22
+	num_features = 10
 
-	file = 'data/phishing.csv'
+	file = '../data/phishing.csv'
 	l_name = ['result']
 	experiment_list = ['Naive Bayes', 'Naive Bayes - Numerical Correction']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
@@ -31,16 +31,16 @@ if __name__ == "__main__":
 	f_names.remove('favicons')
 	f_train = f_train[f_names]
 
+	f_train = f_train.replace(0, -1)
+	l_train = l_train.replace(0, -1)
+	f_test = f_test.replace(0, -1)
+	l_test = l_test.replace(0, -1)
+
 	# TODO: WHY DO THIS?
 	# f_test = f_test[f_test['favicons'] == -1]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
 	print(l_test[l_name].value_counts())
 	print(len(f_train), len(l_train))
-
-	f_train = f_train.replace(0, -1)
-	l_train = l_train.replace(0, -1)
-	f_test = f_test.replace(0, -1)
-	l_test = l_test.replace(0, -1)
 
 	experiment = Experiment(experiment_list, f_train, l_train, f_test, l_test, f_names, l_name)
 	loss_ctrl = experiment.get_loss(len(f_names))
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
 	results_df = pd.DataFrame()
 
-	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0]
+	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (num_features + 1)
@@ -62,5 +62,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_nohallbig_trials=%i_epsm=even_smalleps_feat=%i' % (num_trials, num_features)
+	save_file = 'phishing_nohall_trials=%i_epsm=even_medeps_feat=%i' % (num_trials, num_features)
 	plot_results(results_df, experiment_list, save_file)

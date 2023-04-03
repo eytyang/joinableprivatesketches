@@ -11,24 +11,22 @@ warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
 	num_trials = 25
-	num_features = 22
+	num_features = 14
 
-	file = 'data/phishing.csv'
-	l_name = ['result']
+	file = '../data/diabetes_binary_5050split.csv'
+	l_name = ['Diabetes_binary']
 	experiment_list = ['Naive Bayes', 'Naive Bayes - Numerical Correction']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 
 	f_names = list(f_train.columns)
-	f_names.remove('length_of_url')
-	f_names.remove('sub_domains')
-	f_names.remove('sfh-domain')
-	f_names.remove('web_traffic')
-	f_names.remove('links_pointing')
+	f_names.remove('BMI')
+	f_names.remove('GenHlth')
+	f_names.remove('MentHlth')
+	f_names.remove('PhysHlth')
+	f_names.remove('Age')
+	f_names.remove('Education')
+	f_names.remove('Income')
 
-	# f_train = f_train[f_train['favicons'] == -1]
-	# COMMENT THIS OUT!
-	# l_train = l_train.loc[f_train.index]
-	f_names.remove('favicons')
 	f_train = f_train[f_names]
 
 	# TODO: WHY DO THIS?
@@ -37,10 +35,10 @@ if __name__ == "__main__":
 	print(l_test[l_name].value_counts())
 	print(len(f_train), len(l_train))
 
-	f_train = f_train.replace(0, -1)
-	l_train = l_train.replace(0, -1)
-	f_test = f_test.replace(0, -1)
-	l_test = l_test.replace(0, -1)
+	f_train = f_train.replace(0.0, -1)
+	l_train = l_train.replace(0.0, -1)
+	f_test = f_test.replace(0.0, -1)
+	l_test = l_test.replace(0.0, -1)
 
 	experiment = Experiment(experiment_list, f_train, l_train, f_test, l_test, f_names, l_name)
 	loss_ctrl = experiment.get_loss(len(f_names))
@@ -48,7 +46,7 @@ if __name__ == "__main__":
 
 	results_df = pd.DataFrame()
 
-	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0]
+	eps_list = [0.25, 0.5]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (num_features + 1)
@@ -62,5 +60,5 @@ if __name__ == "__main__":
 		print()
 
 	results_df = results_df / loss_ctrl
-	save_file = 'phishing_nohallbig_trials=%i_epsm=even_smalleps_feat=%i' % (num_trials, num_features)
+	save_file = 'diabetes_5050split_trials=%i_epsm=even_minisculeeps_feat=%i' % (num_trials, num_features)
 	plot_results(results_df, experiment_list, save_file)
