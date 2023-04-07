@@ -7,7 +7,6 @@ from hashes import Hashes
 
 def rand_unit_vec(length, scale_factor):
 	gaussian = np.random.normal(size = length)
-	# TODO: FIX THIS HACK
 	return scale_factor * gaussian / np.linalg.norm(gaussian) 
 
 # Takes in a query vector and a dictionary mapping between 

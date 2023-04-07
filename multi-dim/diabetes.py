@@ -10,12 +10,11 @@ warnings.filterwarnings("ignore", message = "A column-vector y was passed when a
 warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
-	num_trials = 25
-	num_features = 14
+	num_trials = 15
 
 	file = 'data/diabetes_binary_5050split.csv'
 	l_name = ['Diabetes_binary']
-	experiment_list = ['Naive Bayes', 'Naive Bayes - Numerical Correction']
+	experiment_list = ['Naive Bayes', 'Decision Tree', 'Logistic Regression', 'AdaBoost']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 
 	f_names = list(f_train.columns)
@@ -26,39 +25,34 @@ if __name__ == "__main__":
 	f_names.remove('Age')
 	f_names.remove('Education')
 	f_names.remove('Income')
-
 	f_train = f_train[f_names]
-
-	# TODO: WHY DO THIS?
-	# f_test = f_test[f_test['favicons'] == -1]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	print(l_test[l_name].value_counts())
-	print(len(f_train), len(l_train))
 
-	f_train = f_train.replace(0.0, -1)
-	l_train = l_train.replace(0.0, -1)
-	f_test = f_test.replace(0.0, -1)
-	l_test = l_test.replace(0.0, -1)
+	f_train = f_train.replace(0, -1)
+	l_train = l_train.replace(0, -1)
+	f_test = f_test.replace(0, -1)
+	l_test = l_test.replace(0, -1)
 
 	experiment = Experiment(experiment_list, f_train, l_train, f_test, l_test, f_names, l_name)
-	loss_ctrl = experiment.get_loss(len(f_names))
-	print(loss_ctrl)
 
-	results_df = pd.DataFrame()
+	results = {}
+	for experiment_name in experiment_list:
+		results[experiment_name] = pd.DataFrame()
 
-	eps_list = [3.0, 6.0, 9.0, 12.0, 15.0]
+	eps_list = [2.5, 5.0, 7.5, 10.0, 12.5]
+	reduced_features_list = [2.0, 6.0, 10.0, 14.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
-		eps_memb = 30.0 # eps / (num_features + 1)
-		eps_val = eps # - eps_memb
 
-		loss_dict = experiment.run_dp_sketch_experiments(eps_memb, eps_val, num_features, num_trials)
-		loss_dict['Epsilon'] = [eps]
-
-		eps_df = pd.DataFrame(loss_dict).set_index('Epsilon')
-		results_df = pd.concat([results_df, eps_df])
+		loss_dict = experiment.run_dp_sketch_experiments(eps, reduced_features_list, num_trials)
+		for experiment_name in experiment_list:
+			loss_dict[experiment_name]['Epsilon'] = [eps]
+			eps_df = pd.DataFrame(loss_dict[experiment_name]).set_index('Epsilon')
+			results[experiment_name] = pd.concat([results[experiment_name], eps_df])
 		print()
 
-	results_df = results_df / loss_ctrl
-	save_file = 'diabetes_5050split_trials=%i_epsm=even_tinyeps_feat=%i' % (num_trials, num_features)
-	plot_results(results_df, experiment_list, save_file)
+	for experiment_name in experiment_list:
+		loss_ctrl = experiment.get_loss(experiment_name)
+		results[experiment_name] = results[experiment_name] / loss_ctrl
+		save_file = 'phishingnohall_%s_trials=%i_largeeps' % (experiment_name.strip(' ').lower(), num_trials)
+		plot_results(results[experiment_name], save_file, reduced_features_list, len(f_names))

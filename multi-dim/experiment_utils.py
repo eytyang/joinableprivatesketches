@@ -42,15 +42,18 @@ def uniform_subsample(df_known, df_private, frac_keep):
 		df_private = df_private.loc[private_indices]
 	return df_private
 
-def plot_results(results, experiment_list, file):
+def plot_results(results, file, reduced_features_list, total_features):
 	print(results)
+	print()
 	results.to_csv('%s.csv' % file)
-	shift = -0.05
-	for experiment in experiment_list:
-		plt.errorbar(results.index + shift, results[experiment], yerr = results[[experiment + ' 25', experiment + ' 75']].to_numpy().T, label = experiment)
-		shift += 0.05
+	shift = -0.02
+	for reduced_features in reduced_features_list:
+		plt.errorbar(results.index + shift, results[reduced_features], \
+			yerr = results[[str(reduced_features) + ' 25', str(reduced_features) + ' 75']].to_numpy().T, label = "Reduced Features = %i" % reduced_features)
+		shift += 0.01
 
 	plt.xlabel("Epsilon")
 	plt.ylabel("(Loss With DP) / (Actual Loss)")
 	plt.legend(loc = "lower right")
 	plt.savefig('%s.jpg' % file)
+	plt.close()

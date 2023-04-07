@@ -5,16 +5,21 @@ pd.options.mode.chained_assignment = None
 from statistics import median
 from dp_sketch import DP_Join
 from sklearn import metrics 
-from naive_bayes_weighted import NB_Weighted
-from naive_bayes_weighted_adjusted import Adjusted_NB_Weighted
-from test_time_correction import TestTimeCorrection
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.ensemble import AdaBoostClassifier
 
-import copy
 import warnings
 warnings.filterwarnings("ignore", message = "A column-vector y was passed when a 1d array was expected.")
 warnings.filterwarnings("ignore", message = "X has feature names")
 
-control_experiment = 'Naive Bayes'
+method_to_obj = {'Naive Bayes': BernoulliNB(),
+				'Decision Tree': DecisionTreeClassifier(),
+				'Logistic Regression': LogisticRegression(),
+				'SVM': SVC(),
+				'AdaBoost': AdaBoostClassifier()}
 
 class Experiment:
 	def __init__(self, experiment_list, f_train, l_train, f_test, l_test, f_names, l_name):
@@ -24,71 +29,52 @@ class Experiment:
 		self.f_test = f_test.replace(-1, 0)
 		self.l_test = l_test.replace(-1, 0)
 		self.f_names = f_names
-		self.l_name = l_name 
+		self.l_name = l_name
 		self.df_ctrl = f_train.join(l_train, how = 'inner').replace(-1, 0)
-		# print('Control', len(self.df_ctrl[self.df_ctrl[l_name[0]] == 1]), len(self.df_ctrl[self.df_ctrl[l_name[0]] == 0]))
-		self.df_dp = None
-		self.df_dp_unfiltered = None
+		self.df_dp = {}
 
 	# Get control loss
-	def get_loss(self, num_features, experiment = control_experiment, params = {}, is_dp = False):
-		method_to_obj = {'Naive Bayes': NB_Weighted(num_features),
-			'Naive Bayes - Numerical Correction': Adjusted_NB_Weighted(num_features), 
-			'Test Time Correction': TestTimeCorrection(NB_Weighted(num_features))}
-		
+	def get_loss(self, experiment_name, is_dp = False, reduced_features = 1, dp_type = 'Ind_Unif'):
+		classifier = method_to_obj[experiment_name]
+
 		if is_dp:
-			classifier = method_to_obj[experiment]
-			if experiment == 'Test Time Correction':
-				classifier.fit(self.df_dp_unfiltered.df[self.f_names], self.df_dp_unfiltered.df[self.l_name], **params)
-			elif experiment != control_experiment:
-				classifier.fit(self.df_dp.df[self.f_names], self.df_dp.df[self.l_name], **params)
-			elif experiment == control_experiment:
-				classifier.fit(self.df_dp.df[self.f_names], self.df_dp.df[self.l_name])
+			df = self.df_dp[reduced_features].df
+			classifier.fit(df[self.f_names], df[self.l_name])
 		else:
-			classifier = NB_Weighted(len(self.f_names))
 			classifier.fit(self.df_ctrl[self.f_names], self.df_ctrl[self.l_name])
-			print(len(self.df_ctrl))
 		
 		pred = classifier.predict(self.f_test.to_numpy())
 		return metrics.accuracy_score(self.l_test, pred) 
 
-	# Run any experiments on the joinable sketch
-	def run_dp_sketch_experiments(self, eps_memb, eps_val, num_features, num_trials = 25):
+	# Run experiments on the joinable sketch for all sketch and feature types
+	def run_dp_sketch_experiments(self, eps, reduced_features_list, num_trials = 25):
 		trial_dict = {}
-		for experiment in self.experiment_list:
-			trial_dict[experiment] = []
-
-		for trial in range(num_trials):
-			print('Trial Number %i' % (trial + 1))
-
-			self.df_dp = DP_Join(eps_memb, eps_val)
-			self.df_dp.join(self.l_train, self.f_train, num_features)
-			self.df_dp_unfiltered = copy.copy(self.df_dp)
-
-			print("Private Sketch Preparation: All Random Steps Complete!")
-			self.df_dp.populate_nans()
-			print("Private Sketch Preparation: NaNs Populated!")
-			self.df_dp.drop_entries()
-			print("Private Sketch Preparation Complete!")
-			self.df_dp_unfiltered.flip_labels(self.l_name[0])
-			self.df_dp.df = self.df_dp.df.replace(-1, 0)
-			self.df_dp_unfiltered.df = self.df_dp_unfiltered.df.replace(-1, 0)
-			print(len(self.df_dp.df))
-
-			params = {'full_labels': self.l_train.replace(-1, 0), 
-				'eps_memb': eps_memb,
-				'eps_val': eps_val, 
-				'num_features': num_features,
-				'probabilities': self.df_dp.probabilities} 
-			for experiment in self.experiment_list:
-				loss = self.get_loss(num_features, experiment, params, True)
-				print(loss)
-				trial_dict[experiment].append(loss)
-
 		loss_dict = {}
-		for experiment in self.experiment_list:
-			loss_dict[experiment] = median(trial_dict[experiment])
-			loss_dict[experiment + ' 25'] = loss_dict[experiment] - np.percentile(trial_dict[experiment], 25)
-			loss_dict[experiment + ' 75'] = np.percentile(trial_dict[experiment], 75) - loss_dict[experiment]
+		for experiment_name in self.experiment_list:
+			trial_dict[experiment_name] = {}
+			loss_dict[experiment_name] = {}
+
+		for reduced_features in reduced_features_list:
+			print("Number of Features (Reduced): %i" % reduced_features)
+			for experiment_name in self.experiment_list:
+				trial_dict[experiment_name][reduced_features] = []
+
+			for trial in range(num_trials):
+				self.df_dp[reduced_features] = DP_Join(eps / (reduced_features + 1), eps - eps / (reduced_features + 1))
+				self.df_dp[reduced_features].join(self.l_train, self.f_train, reduced_features, 'Dep', 'NonUnif')
+				self.df_dp[reduced_features].flip_labels(self.l_name[0])
+				self.df_dp[reduced_features].df = self.df_dp[reduced_features].df.replace(-1, 0)
+				
+				for experiment_name in self.experiment_list:
+					loss = self.get_loss(experiment_name, True, reduced_features, 'Dep_NonUnif')
+					print('Trial Number %i, %s: %f' % (trial + 1, experiment_name, loss))
+					trial_dict[experiment_name][reduced_features].append(loss)
+			print()
+
+		for experiment_name in self.experiment_list:
+			for reduced_features in reduced_features_list:
+				loss_dict[experiment_name][reduced_features] = median(trial_dict[experiment_name][reduced_features])
+				loss_dict[experiment_name][str(reduced_features) + ' 25'] = loss_dict[experiment_name][reduced_features] - np.percentile(trial_dict[experiment_name][reduced_features], 25)
+				loss_dict[experiment_name][str(reduced_features) + ' 75'] = np.percentile(trial_dict[experiment_name][reduced_features], 75) - loss_dict[experiment_name][reduced_features]
 		return loss_dict
 

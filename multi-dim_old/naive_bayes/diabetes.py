@@ -26,11 +26,8 @@ if __name__ == "__main__":
 	f_names.remove('Age')
 	f_names.remove('Education')
 	f_names.remove('Income')
-
 	f_train = f_train[f_names]
 
-	# TODO: WHY DO THIS?
-	# f_test = f_test[f_test['favicons'] == -1]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
 	print(l_test[l_name].value_counts())
 	print(len(f_train), len(l_train))
