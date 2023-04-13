@@ -61,12 +61,12 @@ class Experiment:
 
 			for trial in range(num_trials):
 				self.df_dp[reduced_features] = DP_Join(eps / (reduced_features + 1), eps - eps / (reduced_features + 1))
-				self.df_dp[reduced_features].join(self.l_train, self.f_train, reduced_features, 'Dep', 'NonUnif')
+				self.df_dp[reduced_features].join(self.l_train, self.f_train, reduced_features, 'Ind', 'Unif')
 				self.df_dp[reduced_features].flip_labels(self.l_name[0])
 				self.df_dp[reduced_features].df = self.df_dp[reduced_features].df.replace(-1, 0)
 				
 				for experiment_name in self.experiment_list:
-					loss = self.get_loss(experiment_name, True, reduced_features, 'Dep_NonUnif')
+					loss = self.get_loss(experiment_name, True, reduced_features, 'Ind_Unif')
 					print('Trial Number %i, %s: %f' % (trial + 1, experiment_name, loss))
 					trial_dict[experiment_name][reduced_features].append(loss)
 			print()

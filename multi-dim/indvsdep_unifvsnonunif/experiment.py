@@ -72,6 +72,7 @@ class Experiment:
 					self.df_dp[dp_type] = DP_Join(eps_memb, eps_val)
 					self.df_dp[dp_type].join(self.l_train, self.f_train, reduced_features, sketch_type, feat_type)
 					self.df_dp[dp_type].flip_labels(self.l_name[0])
+					self.df_dp[dp_type].df = self.df_dp[dp_type].df.replace(0, 0.5)
 					self.df_dp[dp_type].df = self.df_dp[dp_type].df.replace(-1, 0)
 					
 					for experiment_name in self.experiment_list:

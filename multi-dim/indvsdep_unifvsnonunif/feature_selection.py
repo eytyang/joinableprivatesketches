@@ -34,7 +34,7 @@ def sample_closest_vecs(reduced_features, mat, vec_norm, feat_type):
 			new_col = get_closest_vec(mat, vec_norm)
 			if new_col not in subsample:			
 				subsample.append(new_col)
-	return [choice([-1, 1]) if i not in subsample else 1.0 for i in range(mat.shape[0])]
+	return [0.0 if i not in subsample else 1.0 for i in range(mat.shape[0])]
 
 class Feature_Selection:
 	def __init__(self, eps, index_universe, feat_type):

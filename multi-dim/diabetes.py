@@ -54,5 +54,5 @@ if __name__ == "__main__":
 	for experiment_name in experiment_list:
 		loss_ctrl = experiment.get_loss(experiment_name)
 		results[experiment_name] = results[experiment_name] / loss_ctrl
-		save_file = 'phishingnohall_%s_trials=%i_largeeps' % (experiment_name.strip(' ').lower(), num_trials)
+		save_file = 'diabetes_%s_trials=%i_largeeps' % (experiment_name.strip(' ').lower(), num_trials)
 		plot_results(results[experiment_name], save_file, reduced_features_list, len(f_names))

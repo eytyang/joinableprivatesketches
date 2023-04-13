@@ -27,7 +27,7 @@ def sample_closest_vecs(reduced_features, mat, vec_norm, feat_type):
 		return [1.0 for i in range(mat.shape[0])]
 	
 	if feat_type == 'Unif':
-		subsample = sample(range(mat.shape[0]), reduced_features)
+		subsample = sample(range(mat.shape[0]), int(reduced_features))
 	else:	
 		subsample = []
 		while len(subsample) < reduced_features:

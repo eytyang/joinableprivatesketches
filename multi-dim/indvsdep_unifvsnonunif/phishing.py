@@ -11,11 +11,11 @@ warnings.filterwarnings("ignore", message = "X has feature names")
 
 if __name__ == "__main__":
 	num_trials = 25
-	reduced_features = 22
+	reduced_features = 5
 
-	file = 'data/phishing.csv'
+	file = '../data/phishing.csv'
 	l_name = ['result']
-	experiment_list = ['Naive Bayes', 'Decision Tree', 'Logistic Regression', 'SVM', 'AdaBoost']
+	experiment_list = ['Naive Bayes', 'Decision Tree', 'Logistic Regression', 'AdaBoost']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 
 	f_names = list(f_train.columns)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	for experiment_name in experiment_list:
 		results[experiment_name] = pd.DataFrame()
 
-	eps_list = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+	eps_list = [2.0, 4.0, 6.0, 8.0, 10.0, 12.0]
 	for eps in eps_list:
 		print('Epsilon: %s' % str(eps))
 		eps_memb = eps / (reduced_features + 1)
@@ -64,5 +64,5 @@ if __name__ == "__main__":
 	for experiment_name in experiment_list:
 		loss_ctrl = experiment.get_loss(experiment_name)
 		results[experiment_name] = results[experiment_name] / loss_ctrl
-		save_file = 'phishingnohall_%s_trials=%i_feat=%i_largeeps' % (experiment_name.strip(' ').lower(), num_trials, reduced_features)
+		save_file = 'phishingimpute0.5_%s_trials=%i_feat=%i_largeeps' % (experiment_name.strip(' ').lower(), num_trials, reduced_features)
 		plot_results(results[experiment_name], save_file, reduced_features, len(f_names))
