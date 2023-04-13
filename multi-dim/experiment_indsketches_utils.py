@@ -4,7 +4,7 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  
 
 from sklearn.model_selection import train_test_split
-from experiment import Experiment
+from experiment_numfeatures import Experiment
 
 # Function for centering columns of a DataFrame
 def center(df, cols):

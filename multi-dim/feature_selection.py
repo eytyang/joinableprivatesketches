@@ -22,28 +22,35 @@ def get_closest_vec(mat, vec_norm):
 			closest_col = i
 	return closest_col
 
-def sample_closest_vecs(reduced_features, mat, vec_norm, feat_type):
+def get_col_dist(mat, vec_norm, num_samples = 10000):
+	rand_vecs = np.random.normal(size = (num_samples, mat.shape[0]))
+	norms = np.linalg.norm(rand_vecs, axis = 1)
+	rand_unit_vecs = vec_norm * rand_vecs / norms[:, np.newaxis]
+
+	samples = list(np.argmax(np.matmul(rand_unit_vecs, mat), axis = 1))
+	# Guarantee that each feature gets counted at least once.
+	samples.extend(list(range(mat.shape[1]))) 
+	return np.unique(samples, return_counts = True)[1]
+
+def sample_closest_vecs(reduced_features, mat, vec_norm, p = None):
 	if reduced_features == mat.shape[0]:
 		return [1.0 for i in range(mat.shape[0])]
 	
-	if feat_type == 'Unif':
-		subsample = sample(range(mat.shape[0]), int(reduced_features))
+	if p is None:
+		subsample = sample(range(mat.shape[0]), reduced_features)
 	else:	
-		subsample = []
-		while len(subsample) < reduced_features:
-			new_col = get_closest_vec(mat, vec_norm)
-			if new_col not in subsample:			
-				subsample.append(new_col)
-	return [choice([-1, 1]) if i not in subsample else 1.0 for i in range(mat.shape[0])]
+		subsample = np.random.choice(mat.shape[0], size = reduced_features, replace = False, p = p)
+	return [0 if i not in subsample else 1.0 for i in range(mat.shape[0])]
 
 class Feature_Selection:
 	def __init__(self, eps, index_universe, feat_type):
 		self.eps = eps
 		self.index_universe = index_universe
 		self.num_buckets = len(index_universe)
-		self.features = {}
+		self.features = None
 		self.probabilities = {}
 		self.feat_type = feat_type
+		self.col_subset = None
 
 	# Here, we select reduced_features features per index
 	# TODO: INCORPORATE DP
@@ -59,11 +66,21 @@ class Feature_Selection:
 
 		counter = 0
 		self.features = pd.DataFrame(index = self.index_universe, columns = col_names)
-		for i in self.index_universe:
-			self.features.loc[i] = sample_closest_vecs(reduced_features, mat, vec_norm, self.feat_type)
-			counter += 1
-			# if counter % 5000 == 0:
-			# 	print("Sampled %i Rows" % counter)
+		if self.feat_type == "Unif":
+			for i in self.index_universe:
+				self.features.loc[i] = sample_closest_vecs(reduced_features, mat, vec_norm)
+				counter += 1
+		else:
+			p = get_col_dist(mat, vec_norm, 25 * len(data))
+			p = p / np.sum(p)
+			if self.feat_type == "NonUnif":
+				for i in self.index_universe:
+					self.features.loc[i] = sample_closest_vecs(reduced_features, mat, vec_norm, p)
+					counter += 1
+			if self.feat_type == "Same":
+				p = get_col_dist(mat, vec_norm, 25 * len(data))
+				p = p / np.sum(p)
+				self.col_subset = np.argpartition(p, reduced_features)[-1 * reduced_features:]
 
 		for col in col_names:
 			self.probabilities[col] = len(self.features[col].dropna()) / len(self.index_universe)

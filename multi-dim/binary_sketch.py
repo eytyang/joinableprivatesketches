@@ -10,16 +10,19 @@ def two_sided_geom(p):
 		return np.random.geometric(1.0 - p) - np.random.geometric(1.0 - p) 
 
 # Implement DP sign flips:
-def sample_dp_signs(eps, reduced_features, total_features, sketch_type):
-	if sketch_type == 'Ind':
-		dist = [exp(-1.0 * eps / reduced_features) / 2.0, 1.0 - exp(-1.0 * eps / reduced_features) / 2.0]
-		return [choices([-1, 1], weights = dist)[0] for i in range(total_features)]
+def sample_dp_signs(eps_list, reduced_features, total_features, sketch_type):
+	if sketch_type == 'Ind' or sketch_type == 'Weighted':
+		for i in range(len(eps_list)):
+			dist = [exp(-1.0 * eps_list[i]) / 2.0, 1.0 - exp(-1.0 * eps_list[i]) / 2.0]
+		return [choices([-1, 1], weights = dist[i])[0] for i in range(total_features)]
 
-	keep_prob = (exp(eps) - 1) / (exp(eps) + (2 ** (reduced_features)) - 1)
-	if np.random.uniform() < keep_prob:
-		return [1 for i in range(total_features)]
-	else:
-		return [choice([-1, 1]) for i in range(total_features)]
+	if sketch_type == 'Dep':
+		eps = sum(eps_list)
+		keep_prob = (exp(eps) - 1) / (exp(eps) + (2 ** (reduced_features)) - 1)
+		if np.random.uniform() < keep_prob:
+			return [1 for i in range(total_features)]
+		else:
+			return [choice([-1, 1]) for i in range(total_features)]
 
 class Binary_Sketch:
 	def __init__(self, eps, index_universe, num_buckets, sketch_type, feat_type):
@@ -41,10 +44,14 @@ class Binary_Sketch:
 		self.probabilities = feature_selector.probabilities
 		return self.features, self.probabilities
 
-	def get_signs(self, col_names, reduced_features):
+	def get_signs(self, col_names, reduced_features, p = None):
 		flips = pd.DataFrame(index = self.index_universe, columns = col_names)
 
 		for i in self.index_universe:
-			flips.loc[i] = sample_dp_signs(self.eps, reduced_features, len(col_names), self.sketch_type)
+			if self.sketch_type == 'Ind' or self.sketch_type == 'Dep':
+				eps_list = [eps / reduced_features for i in range(reduced_features)]
+			if self.sketch_type == 'Weighted':
+				eps_list = [eps * p[i] for i in range(reduced_features)]
+			flips.loc[i] = sample_dp_signs(eps_list, reduced_features, len(col_names), self.sketch_type)
 
 		return flips

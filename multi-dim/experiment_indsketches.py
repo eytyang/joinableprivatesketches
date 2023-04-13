@@ -63,6 +63,7 @@ class Experiment:
 				self.df_dp[reduced_features] = DP_Join(eps / (reduced_features + 1), eps - eps / (reduced_features + 1))
 				self.df_dp[reduced_features].join(self.l_train, self.f_train, reduced_features, 'Ind', 'Unif')
 				self.df_dp[reduced_features].flip_labels(self.l_name[0])
+				# self.df_dp[reduced_features].df = self.df_dp[reduced_features].df.replace(0, 0.5)
 				self.df_dp[reduced_features].df = self.df_dp[reduced_features].df.replace(-1, 0)
 				
 				for experiment_name in self.experiment_list:
