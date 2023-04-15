@@ -24,8 +24,6 @@ class DP_Join:
 		self.sens = sens
 		self.num_buckets = num_buckets
 		self.df = None
-		self.features = None
-		self.probabilities = None
 		self.known_cols = None
 
 	# Combines the value sketch and the membership sketch to perform a join
@@ -42,18 +40,29 @@ class DP_Join:
 		df_dp = decode_sketch(df_dp, 'membership', memb)
 		
 		val = Binary_Sketch(self.eps_val, index_universe, self.num_buckets, sketch_type, feat_type)
-		self.features, self.probabilities = val.get_features(df_private, reduced_features)
-		signs = val.get_signs(df_private.columns, reduced_features)
+		features, p = val.get_features(df_private, reduced_features)
 
-		# TODO: STREAMLINE THIS
-		for col in self.known_cols:
-			self.features[col] = pd.Series([1 for i in index_universe], index = index_universe)
-		self.features['membership'] = pd.Series([1 for i in index_universe], index = index_universe)
+		if sketch_type == 'WeightedInd':
+			signs = val.get_signs(df_private.columns, reduced_features, p)
+		else:
+			signs = val.get_signs(df_private.columns, reduced_features)
+
+		if feat_type != 'Same':
+			# TODO: STREAMLINE THIS
+			for col in self.known_cols:
+				features[col] = pd.Series([1 for i in index_universe], index = index_universe)
+			features['membership'] = pd.Series([1 for i in index_universe], index = index_universe)
 
 		df_private = df_private.mul(signs)
 		df_dp = df_dp.join(df_private)
 		self.df = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
-		self.df = self.df.mul(self.features)
+		if feat_type == 'Same':
+			keep_cols = list(self.known_cols)
+			keep_cols.append('membership')
+			keep_cols.extend([df_private.columns[i] for i in features])
+			self.df = self.df[keep_cols]
+		else:
+			self.df = self.df.mul(features)
 
 	def flip_labels(self, l_name):
 		self.df = self.df[self.df['membership'] != 0]
