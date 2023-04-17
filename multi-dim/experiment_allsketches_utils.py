@@ -18,7 +18,7 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 		df = pd.read_csv(file).set_index(index_name)
 	else:
 		df = pd.read_csv(file)
-	
+
 	if f_names is None:
 		f_names = list(df.columns)
 		f_names.remove(l_name[0])

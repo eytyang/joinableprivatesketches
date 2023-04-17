@@ -39,13 +39,14 @@ if __name__ == "__main__":
 	l_name = ['Cover_Type']
 	f_names = ['Elevation', 'Aspect', 'Slope', 'Horizontal_Distance_To_Hydrology', \
 		'Vertical_Distance_To_Hydrology', 'Horizontal_Distance_To_Roadways', \
-		'Vertical_Distance_To_Roadways', 'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm', \
-		'Horizontal_Distance_To_Fire_Points']
+		'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm', 'Horizontal_Distance_To_Fire_Points']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 
 	f_train = f_train[f_names]
-	l_train = l_train[l_train['Cover_Type'] in [6, 7]]
-	f_train = f_train.loc[f_train.index]
+	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	f_train = f_train.loc[l_train.index]
+	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
@@ -83,9 +84,8 @@ if __name__ == "__main__":
 		for trial in range(num_trials):
 			print('Trial %i' % (trial + 1))
 			# TODO: Maybe create a fit_transform and transform function for RFFs too.
-			omega, beta, f_train_rff = get_rffs(f_train.to_numpy(), dim)
+			omega, beta, f_train_rff = get_rffs(f_train.to_numpy(), dim * 100)
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test.to_numpy(), omega) + beta)
-			print(f_train_rff.shape)
 
 			for alg in algs:
 				trial_dict[alg].append(get_loss(f_train_rff, l_train.to_numpy(), f_test_rff, l_test.to_numpy()))

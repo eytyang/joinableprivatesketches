@@ -27,7 +27,7 @@ def sample_closest_vecs(reduced_features, mat, vec_norm, p = None):
 		subsample = sample(range(mat.shape[0]), reduced_features)
 	else:	
 		subsample = np.random.choice(mat.shape[0], size = reduced_features, replace = False, p = p)
-	return [choice([-1, 1]) if i not in subsample else 1.0 for i in range(mat.shape[0])]
+	return [0 if i not in subsample else 1.0 for i in range(mat.shape[0])]
 
 class Feature_Selection:
 	def __init__(self, feat_eps, index_universe, feat_type):
