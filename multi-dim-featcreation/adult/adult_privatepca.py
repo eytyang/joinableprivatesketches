@@ -1,0 +1,195 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from statistics import median
+from math import log
+
+from dp_sketch import DP_Join
+
+from sklearn import metrics 
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+
+method_to_obj = {'Naive Bayes': GaussianNB(),
+				'Decision Tree': DecisionTreeClassifier(),
+				'Logistic Regression': LogisticRegression(),
+				'SVM': SVC(),
+				'AdaBoost': AdaBoostClassifier(), 
+				'Random Forest': RandomForestClassifier()}
+
+def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
+	# Load dataset 
+	if index_name is not None:
+		df = pd.read_csv(file).set_index(index_name)
+	else:
+		df = pd.read_csv(file)
+	df = df.dropna()
+
+	if f_names is None:
+		f_names = list(df.columns)
+		f_names.remove(l_name[0])
+	categorical = df[f_names].select_dtypes(include=['object', 'bool']).columns
+	df = pd.get_dummies(data = df, columns= categorical)
+
+	f_names = list(df.columns)
+	f_names.remove(l_name[0])
+	if center_data:
+		df = center(center(df, f_names), l_name)
+
+	df_train, df_test = train_test_split(df, test_size = test_size)
+	f_train, l_train = df_train[f_names], df_train[l_name]
+
+	if center_data:
+		f_test, l_test = center(df_test[f_names], f_names), center(df_test[l_name], l_name)
+	else:
+		f_test, l_test = df_test[f_names], df_test[l_name]
+
+	return f_train, l_train, f_test, l_test
+
+def get_random_orthonormal(vec_dim, num_vecs):
+	rand_mat = np.random.normal(size = (vec_dim, num_vecs))
+	Q, R = np.linalg.qr(rand_mat)
+	return Q
+
+def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001): 
+	cov = np.matmul(mat.T, mat)
+	X = get_random_orthonormal(cov.shape[1], dim)
+	if eps is not None:
+		sigma = (1.0 / eps) * ((4 * dim * num_iters * log(1.0 / delta)) ** 0.5)
+
+	for i in range(num_iters):
+		sens = np.absolute(X).max()
+		if eps is None:
+			Y = np.matmul(cov, X)
+		else:
+			Y = np.matmul(cov, X) + np.random.normal(scale = (sens * sigma) ** 2, size = (cov.shape[0], dim))
+		X, R = np.linalg.qr(Y)
+	return X
+
+def get_sens_list(f_train):
+	f_train_abs = np.absolute(f_train)
+	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 
+
+def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
+	classifier = method_to_obj[alg]
+	classifier.fit(f_train, l_train.replace(-1, 0).to_numpy().reshape(l_train.size))
+	pred = classifier.predict(f_test)
+	return metrics.accuracy_score(l_test.replace(-1, 0).to_numpy().reshape(l_test.size), pred) 
+
+if __name__ == "__main__":
+	num_trials = 25
+
+	file = '../data/adult.csv'
+	l_name = ['income']
+	f_train, l_train, f_test, l_test = prep_data(file, l_name)
+	print(f_train.head(), l_train.head())
+
+	f_names = f_train.columns
+	print(f_names)
+	
+	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
+	l_train = l_train.replace('<=50K', -1)
+	l_train = l_train.replace('>50K', 1)
+	l_test = l_test.replace('<=50K', -1)
+	l_test = l_test.replace('>50K', 1)
+	num_pos = l_test.value_counts()[1]
+	num_neg = l_test.value_counts()[-1]
+	maj = max([num_pos, num_neg]) / (num_pos + num_neg)
+
+	index_train = f_train.index
+	f_train = f_train.to_numpy()
+	f_test = f_test.to_numpy()
+
+	sketch_dim = [2, 4, 6, 8, 10]
+	num_iters = 50
+	eps_pca = 1000 # 0.1
+	total_eps_list = [2.5, 5.0, 7.5, 10.0, 12.5]
+	algs = ['Logistic Regression', 'AdaBoost']
+
+	trial_dict = {}
+	loss_dict = {}
+	loss_ctrl = {}
+	for alg in algs:
+		loss_dict[alg] = {}
+		loss_dict[alg]['Dimension'] = []
+		loss_dict[alg]['Majority Label'] = []
+		loss_dict[alg]['PCA'] = []
+		for total_eps in total_eps_list:
+			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
+			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
+			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
+		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+
+	print(loss_ctrl)
+
+	for dim in sketch_dim:
+		print('Dimension %i' % dim)
+
+		pca = priv_power_method(f_train, num_iters, dim)
+		f_train_pca = np.matmul(f_train, pca)
+		f_test_pca = np.matmul(f_test, pca)
+		for alg in algs:
+			loss_dict[alg]['Dimension'].append(dim)
+			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train, f_test_pca, l_test, alg))
+			loss_dict[alg]['Majority Label'].append(maj)
+
+		for total_eps in total_eps_list:
+			print('Total Eps = %s' % str(total_eps))
+			# eps = total_eps - eps_pca
+			eps_memb = 1000 # eps / (dim + 1)
+			eps_val = total_eps # - eps_memb
+			
+			for alg in algs:
+				trial_dict[alg] = []
+			
+			for trial in range(num_trials):
+				print('Trial %i' % (trial + 1))
+				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				f_train_priv = np.matmul(f_train, priv_pca)
+				f_test_priv = np.matmul(f_test, priv_pca)
+
+				sens_list = get_sens_list(f_train_priv)
+				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
+				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
+				dp_join.join(l_train, f_train_priv)
+				dp_join.flip_labels(l_name[0])
+
+				for alg in algs:
+					trial_dict[alg].append(get_loss(dp_join.df[f_train_priv.columns].to_numpy(), dp_join.df[l_train.columns], f_test_priv, l_test, alg))
+
+			for alg in algs:
+				loss_dict[alg]['Eps = %s' % str(total_eps)].append(median(trial_dict[alg]))
+				loss_dict[alg]['Eps = %s 25' % str(total_eps)].append(median(trial_dict[alg]) - np.percentile(trial_dict[alg], 25))
+				loss_dict[alg]['Eps = %s 75' % str(total_eps)].append(np.percentile(trial_dict[alg], 75) - median(trial_dict[alg]))
+		print()
+
+	for alg in algs:
+		alg_df = pd.DataFrame(loss_dict[alg])
+		alg_df = alg_df.set_index('Dimension')
+		alg_df = alg_df / loss_ctrl[alg]
+		print(alg_df)
+
+		file = 'adult_privpca_%s_trials=%i' % (alg.lower(), num_trials)
+		alg_df.to_csv('%s.csv' % file)
+		shift = -0.05
+		plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
+			yerr = np.zeros(shape = (2, len(alg_df))), label = 'PCA')
+		shift += 0.01
+		plt.errorbar(alg_df.index + shift, alg_df['Majority Label'], \
+			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Majority Label')
+		for total_eps in total_eps_list:
+			plt.errorbar(alg_df.index + shift, alg_df['Eps = %s' % str(total_eps)], \
+				yerr = alg_df[['Eps = %s 25' % str(total_eps), 'Eps = %s 75' % str(total_eps)]].to_numpy().T, label = 'Eps = %s' % str(total_eps))
+			shift += 0.01
+
+		plt.xlabel("Dimension")
+		plt.ylabel("(Loss With Dim Reduction) / (Actual Loss)")
+		plt.legend(loc = "lower right")
+		plt.savefig('%s.jpg' % file)
+		plt.close()
