@@ -87,7 +87,8 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	bandwidth_list = [250, 375, 500, 625, 750]
-	algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
+	algs = ['AdaBoost', 'SVM', 'RandomForest']
+	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
