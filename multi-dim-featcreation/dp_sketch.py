@@ -9,7 +9,6 @@ from feature_selection import Feature_Selection
 from membership_sketch import Member_Sketch
 from binary_sketch import Binary_Sketch
 from realvalued_sketch import RealValued_Sketch
-from hrw import hrw_mechanism
 
 # TODO: This function behaves a little awkwardly
 def decode_sketch(df, col, sketch_obj):
@@ -62,8 +61,5 @@ class DP_Join:
 
 			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
 			self.features = np.multiply(df_dp[df_private.columns].to_numpy(), signs)
-		elif data_type == 'HRW':
-			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else 0) # TODO: Think about whether this is correct
-			self.features = hrw_mechanism(df_dp[df_private.columns].to_numpy(), self.eps_val, 0.00001, dim, bandwidth)
 		self.labels = df_dp[df_known.columns]
 
