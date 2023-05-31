@@ -161,7 +161,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype_all_experiments/covtype_rffrealclipped_%s_bandwidth=50_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype_all_experiments/covtype_rffreal_%s_bandwidth=50_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \

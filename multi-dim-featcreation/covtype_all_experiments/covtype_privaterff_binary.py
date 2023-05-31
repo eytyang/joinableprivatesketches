@@ -140,8 +140,8 @@ if __name__ == "__main__":
 				eps_memb = 10000 # total_eps / (dim + 1)
 				eps_val = total_eps # - eps_memb
 
-				dp_join = DP_Join(eps_memb, eps_val, sens_list) # TODO: EDIT
-				dp_join.join(l_train, f_train_rff, 'Real') # TODO: EDIT
+				dp_join = DP_Join(eps_memb, eps_val, sens_list) 
+				dp_join.join(l_train, f_train_rff, 'Binary') 
 				dp_join.flip_labels(l_name[0])
 
 				for alg in algs:
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 		alg_df = alg_df / loss_ctrl[alg]
 		print(alg_df)
 
-		file = 'covtype_all_experiments/covtype_rffbinarylaplace_%s_limit_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype_all_experiments/covtype_rffbinary_%s_limit_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \

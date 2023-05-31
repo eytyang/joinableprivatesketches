@@ -22,7 +22,7 @@ method_to_obj = {'NaiveBayes': GaussianNB(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier()}
+				'RandomForest': RandomForestClassifier(n_jobs = 4)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 

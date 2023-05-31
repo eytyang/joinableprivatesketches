@@ -4,6 +4,7 @@ import pandas as pd
 from statistics import median
 from math import log
 
+import tensorflow as tf
 from sklearn import metrics 
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
@@ -13,13 +14,15 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 
 method_to_obj = {'NaiveBayes': GaussianNB(),
 				'DecisionTree': DecisionTreeClassifier(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier()}
+				'RandomForest': RandomForestClassifier(),
+				'MultiLayerPerceptron': MLPClassifier()}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -57,34 +60,40 @@ def get_rffs(mat, dim, bandwidth):
 	beta = np.random.uniform(0, 2 * np.pi, dim).reshape(1, -1)
 	return omega, beta, (2 ** (0.5)) * np.cos(np.matmul(mat, omega) + beta)
 
-def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
+def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 	classifier = method_to_obj[alg]
-	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
+	classifier.fit(f_train, l_train.reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred)
+	return metrics.accuracy_score(l_test.reshape(l_test.size), pred)
 
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/covtype.csv'
-	l_name = ['Cover_Type']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = f_train.columns
-	print(f_names)
+	# Load MNIST dataset
+	mnist = tf.keras.datasets.mnist
+	(f_train, l_train), (f_test, l_test) = mnist.load_data()
 
-	f_train = f_train[f_names]
-	print(l_train.value_counts())
-	print(l_test.value_counts())
-	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
+	# Flatten the image data
+	f_train = f_train.reshape((-1, 28*28))
+	f_test = f_test.reshape((-1, 28*28))
 
-	index_train = f_train.index
-	f_train = f_train.to_numpy()
-	f_test = f_test.to_numpy()
+	# Convert pixel values to float32 and scale them between 0 and 1
+	f_train = f_train.astype(np.float32) / 255.0
+	f_test = f_test.astype(np.float32) / 255.0
+
+	# Convert numpy arrays to matrices
+	f_train = np.matrix(f_train)
+	f_test = np.matrix(f_test)
+
+	# Print the shape of the matrices
+	print("f_train shape:", f_train.shape)
+	print("f_test shape:", f_test.shape)
+	print("l_train shape:", l_train.shape)
+	print("l_test shape:", l_test.shape)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	bandwidth_list = [250, 375, 500, 625, 750]
-	algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
+	algs = ['LogisticRegression', 'RandomForest', 'MultiLayerPerceptron']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -132,7 +141,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype_rffrealtest_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist_rffrealtest_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		shift += 0.05
