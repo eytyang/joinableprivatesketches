@@ -16,13 +16,16 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 method_to_obj = {'NaiveBayes': GaussianNB(),
 				'DecisionTree': DecisionTreeClassifier(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier(n_jobs = 4)}
+				'RandomForest': RandomForestClassifier(n_jobs = 4),
+				'MultiLayerPerceptron': MLPClassifier(),
+				'KNN': KNeighborsClassifier(n_jobs = 4)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -87,7 +90,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	bandwidth_list = [250, 375, 500, 625, 750]
-	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest']
+	algs = ['KNN']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
 	trial_dict = {}

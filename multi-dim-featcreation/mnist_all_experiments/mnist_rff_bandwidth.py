@@ -1,3 +1,6 @@
+from sklearnex import patch_sklearn 
+patch_sklearn()
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -22,7 +25,8 @@ method_to_obj = {'NaiveBayes': GaussianNB(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
 				'RandomForest': RandomForestClassifier(),
-				'MultiLayerPerceptron': MLPClassifier()}
+				'MultiLayerPerceptron': MLPClassifier(),
+				'KNN': KNeighborsClassifier(n_jobs = 4)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -88,8 +92,8 @@ if __name__ == "__main__":
 	print("l_test shape:", l_test.shape)
 
 	sketch_dim = [5, 10, 15, 20, 25]
-	bandwidth_list = [250, 375, 500, 625, 750]
-	algs = ['LogisticRegression', 'RandomForest', 'MultiLayerPerceptron']
+	bandwidth_list = [10, 20, 30, 40, 50]
+	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'MultiLayerPerceptron', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -137,7 +141,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'mnist_rffrealtest_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist_bandwidthtest_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		shift += 0.05
