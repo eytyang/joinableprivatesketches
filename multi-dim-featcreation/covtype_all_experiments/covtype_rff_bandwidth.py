@@ -16,6 +16,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 method_to_obj = {'NaiveBayes': GaussianNB(),
@@ -139,7 +140,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype_rffrealtest_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype_bandwidthtest_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		shift += 0.05
