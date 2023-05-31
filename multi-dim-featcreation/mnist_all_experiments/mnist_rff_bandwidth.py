@@ -81,10 +81,6 @@ if __name__ == "__main__":
 	f_train = f_train.astype(np.float32) / 255.0
 	f_test = f_test.astype(np.float32) / 255.0
 
-	# Convert numpy arrays to matrices
-	f_train = np.matrix(f_train)
-	f_test = np.matrix(f_test)
-
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
 	print("f_test shape:", f_test.shape)
