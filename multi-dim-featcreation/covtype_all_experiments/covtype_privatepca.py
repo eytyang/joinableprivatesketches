@@ -85,7 +85,7 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred) 
 
 if __name__ == "__main__":
-	num_trials = 1
+	num_trials = 25
 
 	file = '../../data/covtype.csv'
 	l_name = ['Cover_Type']

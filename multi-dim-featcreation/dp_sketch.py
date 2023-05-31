@@ -62,4 +62,5 @@ class DP_Join:
 			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
 			self.features = np.multiply(df_dp[df_private.columns].to_numpy(), signs)
 		self.labels = df_dp[df_known.columns]
+	# TODO: ADD FLIP LABELS BACK
 
