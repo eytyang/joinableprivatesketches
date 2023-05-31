@@ -24,9 +24,9 @@ method_to_obj = {'NaiveBayes': GaussianNB(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier(n_jobs = 4),
+				'RandomForest': RandomForestClassifier(n_jobs = 2),
 				'MultiLayerPerceptron': MLPClassifier(),
-				'KNN': KNeighborsClassifier(n_jobs = 4)}
+				'KNN': KNeighborsClassifier(n_jobs = 2)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
