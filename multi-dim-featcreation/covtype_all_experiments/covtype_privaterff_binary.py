@@ -20,6 +20,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 method_to_obj = {'NaiveBayes': GaussianNB(),
 				'DecisionTree': DecisionTreeClassifier(),
