@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
+	algs = ['RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 				dp_join.flip_labels(l_name[0])
 
 				for alg in algs:
-					trial_dict[alg]['Eps = %s' % total_eps].append(get_loss(dp_join.df[f_train_rff.columns].to_numpy(), dp_join.df[l_train.columns], f_test_rff, l_test, alg))
+					trial_dict[alg]['Eps = %s' % total_eps].append(get_loss(dp_join.features, dp_join.labels, f_test_rff, l_test, alg))
 
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)

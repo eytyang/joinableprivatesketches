@@ -154,10 +154,9 @@ if __name__ == "__main__":
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
-				# dp_join.flip_labels(l_name[0])
 
 				for alg in algs:
-					trial_dict[alg].append(get_loss(dp_join.df[f_train_priv.columns].to_numpy(), dp_join.df[l_train.columns], f_test_priv, l_test, alg))
+					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
 
 			for alg in algs:
 				loss_dict[alg]['Eps = %s' % str(total_eps)].append(median(trial_dict[alg]))
