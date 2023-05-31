@@ -26,7 +26,9 @@ method_to_obj = {'NaiveBayes': GaussianNB(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier()}
+				'RandomForest': RandomForestClassifier(n_jobs = 2),
+				'MultiLayerPerceptron': MLPClassifier(),
+				'KNN': KNeighborsClassifier(n_jobs = 2)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -165,9 +167,10 @@ if __name__ == "__main__":
 		alg_df = alg_df / loss_ctrl[alg]
 		print(alg_df)
 
-		file = 'covtype_all_experiments/covtype_rffbinary_%s_limit_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype_rffbinary_%s_limit_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
+		plt.ylim((0.0, 1.0))
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features')
 		plt.errorbar(alg_df.index + shift, alg_df['RFF Binary'], \
