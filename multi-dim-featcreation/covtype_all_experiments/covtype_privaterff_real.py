@@ -134,7 +134,7 @@ if __name__ == "__main__":
 				trial_dict[alg]['RFF Binary'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
 
 			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
-			sens_list = [2 ** 0.5 for i in range(len(f_names))]
+			sens_list = [2 ** 0.5 for i in range(dim)]
 			for total_eps in total_eps_list:
 				print('Total Eps = %s' % str(total_eps))
 				eps_memb = 10000 # total_eps / (dim + 1)
