@@ -69,7 +69,7 @@ def get_rffs(mat, dim, bandwidth):
 	beta = np.random.uniform(0, 2 * np.pi, dim).reshape(1, -1)
 	return omega, beta, (2 ** (0.5)) * np.cos(np.matmul(mat, omega) + beta)
 
-def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
+def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 	classifier = method_to_obj[alg]
 	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
 	pred = classifier.predict(f_test)
