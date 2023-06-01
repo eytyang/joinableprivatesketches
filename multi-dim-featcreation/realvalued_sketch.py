@@ -15,9 +15,6 @@ this class initializes a 'sketch' vector that:
 import numpy as np
 import pandas as pd
 
-def sample_dp_noise(eps_list, sens_list, num_features):
-        return [np.random.laplace(scale = sens_list[i] / eps_list[i]) for i in range(num_features)]
-
 class RealValued_Sketch:
     def __init__(self, eps, sens_list, index_universe, num_buckets):
         '''
@@ -37,5 +34,5 @@ class RealValued_Sketch:
 
     def get_noise(self, col_names, p = None):
         sens_matrix = np.tile(self.sens_list, (len(self.index_universe), 1))
-        laplace = np.random.laplace(len(col_names) / self.eps, size = (len(self.index_universe), len(col_names)))
+        laplace = np.random.laplace(scale = len(col_names) / self.eps, size = (len(self.index_universe), len(col_names)))
         return np.multiply(sens_matrix, laplace)
