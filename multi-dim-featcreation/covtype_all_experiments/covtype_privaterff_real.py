@@ -104,9 +104,9 @@ if __name__ == "__main__":
 	for alg in algs:
 		loss_dict[alg] = {}
 		loss_dict[alg]['Dimension'] = []
-		loss_dict[alg]['RFF Binary'] = []
-		loss_dict[alg]['RFF Binary 25'] = []
-		loss_dict[alg]['RFF Binary 75'] = []
+		loss_dict[alg]['RFF Real'] = []
+		loss_dict[alg]['RFF Real 25'] = []
+		loss_dict[alg]['RFF Real 75'] = []
 		for total_eps in total_eps_list:
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 		# TODO: Optimize this later. 
 		for alg in algs:
 			trial_dict[alg] = {}
-			trial_dict[alg]['RFF Binary'] = []
+			trial_dict[alg]['RFF Real'] = []
 			for total_eps in total_eps_list:
 				trial_dict[alg]['Eps = %s' % str(total_eps)] = []
 			
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
 			for alg in algs:
-				trial_dict[alg]['RFF Binary'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
+				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
 
 			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
 			sens_list = [2 ** 0.5 for i in range(dim)]
@@ -149,9 +149,9 @@ if __name__ == "__main__":
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)
 			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
-			loss_dict[alg]['RFF Binary'].append(median(trial_dict[alg]['RFF Binary']))
-			loss_dict[alg]['RFF Binary 25'].append(median(trial_dict[alg]['RFF Binary']) - np.percentile(trial_dict[alg]['RFF Binary'], 25))
-			loss_dict[alg]['RFF Binary 75'].append(np.percentile(trial_dict[alg]['RFF Binary'], 75) - median(trial_dict[alg]['RFF Binary']))
+			loss_dict[alg]['RFF Real'].append(median(trial_dict[alg]['RFF Real']))
+			loss_dict[alg]['RFF Real 25'].append(median(trial_dict[alg]['RFF Real']) - np.percentile(trial_dict[alg]['RFF Real'], 25))
+			loss_dict[alg]['RFF Real 75'].append(np.percentile(trial_dict[alg]['RFF Real'], 75) - median(trial_dict[alg]['RFF Real']))
 			for total_eps in total_eps_list:
 				loss_dict[alg]['Eps = %s' % str(total_eps)].append(median(trial_dict[alg]['Eps = %s' % str(total_eps)]))
 				loss_dict[alg]['Eps = %s 25' % str(total_eps)].append(median(trial_dict[alg]['Eps = %s' % str(total_eps)]) - np.percentile(trial_dict[alg]['Eps = %s' % str(total_eps)], 25))
@@ -170,8 +170,8 @@ if __name__ == "__main__":
 		plt.ylim((0.0, 1.0))
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features')
-		plt.errorbar(alg_df.index + shift, alg_df['RFF Binary'], \
-			yerr = alg_df[['RFF Binary 25', 'RFF Binary 75']].to_numpy().T, label = 'RFF Binary')
+		plt.errorbar(alg_df.index + shift, alg_df['RFF Real'], \
+			yerr = alg_df[['RFF Real 25', 'RFF Real 75']].to_numpy().T, label = 'RFF Real')
 		shift += 0.05
 		for total_eps in total_eps_list:
 			plt.errorbar(alg_df.index + shift, alg_df['Eps = %s' % str(total_eps)], \
