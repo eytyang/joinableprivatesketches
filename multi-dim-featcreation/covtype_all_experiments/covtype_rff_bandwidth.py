@@ -90,7 +90,7 @@ if __name__ == "__main__":
 	f_test = f_test.to_numpy()
 
 	sketch_dim = [5, 10, 15, 20, 25]
-	bandwidth_list = [250, 375, 500, 625, 750]
+	bandwidth_list = [50, 100, 150, 200, 250]
 	algs = ['RandomForest', 'KNN']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
