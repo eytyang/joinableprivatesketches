@@ -122,7 +122,7 @@ if __name__ == "__main__":
 				omega, beta, f_train_rff = get_rffs(f_train, dim, bandwidth)
 				f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
-				Make the features binary
+				# Make the features binary
 				f_train_rff = rand_round(f_train_rff)
 				f_test_rff = rand_round(f_test_rff)
 
