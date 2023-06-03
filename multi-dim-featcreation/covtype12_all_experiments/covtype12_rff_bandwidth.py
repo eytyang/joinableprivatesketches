@@ -80,17 +80,23 @@ if __name__ == "__main__":
 	print(f_names)
 
 	f_train = f_train[f_names]
+	l_train = l_train[(l_train['Cover_Type'] == 1) | (l_train['Cover_Type'] == 2)]
+	f_train = f_train.loc[l_train.index]
+	l_test = l_test[(l_test['Cover_Type'] == 1) | (l_test['Cover_Type'] == 2)]
+	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
+	l_train = l_train.replace(2, -1)
+	l_test = l_test.replace(2, -1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
 	sketch_dim = [5, 10, 15, 20, 25]
-	bandwidth_list = [10, 20, 30, 40, 50]
+	bandwidth_list = [50, 100, 150, 200, 250]
 	algs = ['RandomForest', 'KNN']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
