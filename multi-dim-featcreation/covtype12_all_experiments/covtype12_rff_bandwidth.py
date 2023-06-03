@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -22,7 +22,7 @@ from sklearn.neighbors import KNeighborsClassifier
 method_to_obj = {'NaiveBayes': GaussianNB(),
 				'DecisionTree': DecisionTreeClassifier(),
 				'LogisticRegression': LogisticRegression(),
-				'SVM': SVC(),
+				'SVM': LinearSVC(),
 				'AdaBoost': AdaBoostClassifier(), 
 				'RandomForest': RandomForestClassifier(n_jobs = 2),
 				'MultiLayerPerceptron': MLPClassifier(),
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	bandwidth_list = [50, 100, 150, 200, 250]
-	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'KNN']
+	algs = ['RandomForest', 'KNN', 'SVM']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
 	trial_dict = {}
