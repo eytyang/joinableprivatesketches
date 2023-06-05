@@ -95,9 +95,9 @@ if __name__ == "__main__":
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
-	sketch_dim = [10, 20, 30, 40, 50]
+	sketch_dim = [20, 40, 60, 80, 100]
 	bandwidth_list = [10, 20, 30, 40, 50]
-	algs = ['LogisticRegression', 'AdaBoost']
+	algs = ['RandomForest', 'KNN']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
 	trial_dict = {}
