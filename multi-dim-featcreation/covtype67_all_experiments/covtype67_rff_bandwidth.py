@@ -1,10 +1,11 @@
+from sklearnex import patch_sklearn 
+patch_sklearn()
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from statistics import median
 from math import log
-
-from dp_sketch import DP_Join
 
 from sklearn import metrics 
 from sklearn.decomposition import PCA
@@ -13,15 +14,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
-method_to_obj = {'Naive Bayes': GaussianNB(),
-				'Decision Tree': DecisionTreeClassifier(),
-				'Logistic Regression': LogisticRegression(),
-				'SVM': SVC(),
+method_to_obj = {'NaiveBayes': GaussianNB(),
+				'DecisionTree': DecisionTreeClassifier(),
+				'LogisticRegression': LogisticRegression(),
+				'SVM': LinearSVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'Random Forest': RandomForestClassifier()}
+				'RandomForest': RandomForestClassifier(n_jobs = 2),
+				'MultiLayerPerceptron': MLPClassifier(),
+				'KNN': KNeighborsClassifier(n_jobs = 2)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -61,14 +66,14 @@ def get_rffs(mat, dim, bandwidth):
 
 def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	classifier = method_to_obj[alg]
-	classifier.fit(f_train, l_train.replace(-1, 0).to_numpy().reshape(l_train.size))
+	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	return metrics.accuracy_score(l_test.replace(-1, 0).to_numpy().reshape(l_test.size), pred)
+	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred)
 
 if __name__ == "__main__":
-	num_trials = 15
+	num_trials = 25
 
-	file = '../data/covtype.csv'
+	file = '../../data/covtype.csv'
 	l_name = ['Cover_Type']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 	f_names = f_train.columns
@@ -84,17 +89,18 @@ if __name__ == "__main__":
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
 	l_train = l_train.replace(6, -1)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, -1)
+	l_test = l_test.replace(7, 1)
+	l_train = l_train.replace(6, -1)
 	l_test = l_test.replace(7, 1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
-	sketch_dim = [5, 10, 15, 20, 25, 30]
-	bandwidth_list = [50, 100, 150, 200, 250]
-	algs = ['Logistic Regression', 'AdaBoost']
+	sketch_dim = [5, 10, 15, 20, 25]
+	bandwidth_list = [10, 20, 30, 40, 50]
+	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'KNN']
+	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -107,13 +113,14 @@ if __name__ == "__main__":
 			loss_dict[alg]['Bdwth = %s 25' % str(bandwidth)] = []
 			loss_dict[alg]['Bdwth = %s 75' % str(bandwidth)] = []
 		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
-
+		loss_dict[alg]['Original Features'] = []
 	print(loss_ctrl)
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)
+			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
 
 		for bandwidth in bandwidth_list:
 			for alg in algs:
@@ -124,8 +131,8 @@ if __name__ == "__main__":
 				f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
 				# Make the features binary
-				# f_train_rff = rand_round(f_train_rff)
-				# f_test_rff = rand_round(f_test_rff)
+				f_train_rff = rand_round(f_train_rff)
+				f_test_rff = rand_round(f_test_rff)
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
@@ -138,20 +145,22 @@ if __name__ == "__main__":
 	for alg in algs:
 		alg_df = pd.DataFrame(loss_dict[alg])
 		alg_df = alg_df.set_index('Dimension')
-		alg_df = alg_df / loss_ctrl[alg]
+		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype_rffrealtest_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype12_binarybandwidthtest_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
-		shift = -0.05
-		shift += 0.01
+		shift = -0.25
+		shift += 0.05
+		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
+			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features')
 		for bandwidth in bandwidth_list:
 			plt.errorbar(alg_df.index + shift, alg_df['Bdwth = %s' % str(bandwidth)], \
 				yerr = alg_df[['Bdwth = %s 25' % str(bandwidth), 'Bdwth = %s 75' % str(bandwidth)]].to_numpy().T, label = 'Bdwth = %s' % str(bandwidth))
-			shift += 0.01
+			shift += 0.05
 
 		plt.xlabel("Dimension")
-		plt.ylabel("(Loss With Dim Reduction) / (Actual Loss)")
+		plt.ylabel("Loss")
 		plt.legend(loc = "lower right")
 		plt.savefig('%s.jpg' % file)
 		plt.close()
