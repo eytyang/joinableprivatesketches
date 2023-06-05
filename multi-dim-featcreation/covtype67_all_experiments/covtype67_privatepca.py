@@ -114,7 +114,7 @@ if __name__ == "__main__":
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'KNN']
+	algs = ['AdaBoost', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
