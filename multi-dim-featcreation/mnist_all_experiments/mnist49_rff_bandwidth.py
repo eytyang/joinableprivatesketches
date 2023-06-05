@@ -78,6 +78,15 @@ if __name__ == "__main__":
 	mnist = tf.keras.datasets.mnist
 	(f_train, l_train), (f_test, l_test) = mnist.load_data()
 
+	# Filter only 4s and 9s
+	train_filter = np.logical_or(l_train == 4, l_train == 9)
+	test_filter = np.logical_or(l_test == 4, l_test == 9)
+
+	f_train = f_train[train_filter]
+	l_train = l_train[train_filter]
+	f_test = f_test[test_filter]
+	l_test = l_test[test_filter]
+
 	# Flatten the image data
 	f_train = f_train.reshape((-1, 28 * 28))
 	f_test = f_test.reshape((-1, 28 * 28))
@@ -92,8 +101,8 @@ if __name__ == "__main__":
 	print("l_train shape:", l_train.shape)
 	print("l_test shape:", l_test.shape)
 
-	sketch_dim = [5, 10, 15, 20, 25]
-	bandwidth_list = [10, 20, 30, 40, 50]
+	sketch_dim = [10, 20, 30, 40, 50]
+	bandwidth_list = [5, 10, 15, 20, 25]
 	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'MultiLayerPerceptron', 'KNN']
 
 	trial_dict = {}
@@ -142,7 +151,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'mnist_bandwidthtest_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist49_bandwidthtest_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		shift += 0.05
