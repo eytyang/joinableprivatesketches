@@ -68,7 +68,6 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	classifier = method_to_obj[alg]
 	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	print(l_test, pred)
 	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred)
 
 if __name__ == "__main__":
