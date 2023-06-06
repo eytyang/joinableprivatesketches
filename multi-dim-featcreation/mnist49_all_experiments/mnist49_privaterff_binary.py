@@ -8,6 +8,7 @@ import sys
 sys.path.append('../')
 from dp_sketch import DP_Join
 
+import tensorflow as tf
 from sklearn import metrics 
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
