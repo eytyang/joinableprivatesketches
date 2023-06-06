@@ -111,10 +111,12 @@ if __name__ == "__main__":
 
 	# Create pandas DataFrames
 	f_train = pd.DataFrame(f_train)
-	l_train = pd.Series(l_train, name='label')
+	l_train = pd.Series(l_train, index = f_train.index, name = 'label')
 	f_test = pd.DataFrame(f_test)
-	l_test = pd.Series(l_test, name='label')
-	index_train = df_train.index
+	l_test = pd.Series(l_test, index = f_test.index, name = 'label')
+	index_train = f_train.index
+	f_train = f_train.to_numpy()
+	f_test = f_test.to_numpy()
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
