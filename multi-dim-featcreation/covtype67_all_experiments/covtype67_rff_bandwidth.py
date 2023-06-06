@@ -57,7 +57,8 @@ def rand_round(mat):
 	round_threshold_vec = np.vectorize(round_threshold)
 	thres = round_threshold_vec(mat)
 	rand_mat = np.random.uniform(size = (mat.shape[0], mat.shape[1]))
-	return (rand_mat > thres) * 1.0
+	binary_mat = rand_mat > thres 
+	return (binary_mat * 2 * (2 ** (0.5))) - 2 ** (0.5)
 
 def get_rffs(mat, dim, bandwidth):
 	omega = (2 ** (0.5)) * np.random.normal(0, 1, size = (mat.shape[1], dim)) / (bandwidth ** 2)
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 	f_test = f_test.to_numpy()
 
 	sketch_dim = [5, 10, 15, 20, 25]
-	bandwidth_list = [10, 20, 30, 40, 50]
+	bandwidth_list = [20, 40, 60, 80, 100]
 	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'KNN']
 	# algs = ['LogisticRegression', 'AdaBoost', 'SVM', 'RandomForest']
 
@@ -129,10 +130,16 @@ if __name__ == "__main__":
 			for trial in range(num_trials):
 				omega, beta, f_train_rff = get_rffs(f_train, dim, bandwidth)
 				f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
+				f_train_rff_copy = f_train_rff.copy()
 
-				# Make the features binary
-				f_train_rff = rand_round(f_train_rff)
-				f_test_rff = rand_round(f_test_rff)
+				print(np.dot(f_train_rff[0, :], f_train_rff[1, :]))
+				print(f_train_rff[0, :], f_train_rff[1, :])
+				for i in range(20):
+					# Make the features binary
+					f_train_rff = rand_round(f_train_rff_copy)
+					print(np.dot(f_train_rff[0, :], f_train_rff[1, :]))
+					print(f_train_rff[0, :], f_train_rff[1, :])
+					f_test_rff = rand_round(f_test_rff)
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))

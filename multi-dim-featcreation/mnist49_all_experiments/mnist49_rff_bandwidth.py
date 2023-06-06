@@ -58,7 +58,8 @@ def rand_round(mat):
 	round_threshold_vec = np.vectorize(round_threshold)
 	thres = round_threshold_vec(mat)
 	rand_mat = np.random.uniform(size = (mat.shape[0], mat.shape[1]))
-	return (rand_mat > thres) * 1.0
+	binary_mat = rand_mat > thres 
+	return (binary_mat * 2 * (2 ** (0.5))) - 2 ** (0.5)
 
 def get_rffs(mat, dim, bandwidth):
 	omega = (2 ** (0.5)) * np.random.normal(0, 1, size = (mat.shape[1], dim)) / (bandwidth ** 2)
