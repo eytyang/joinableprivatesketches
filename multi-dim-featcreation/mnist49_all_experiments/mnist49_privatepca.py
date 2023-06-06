@@ -87,22 +87,34 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/covtype.csv'
-	l_name = ['Cover_Type']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = f_train.columns
+	# Load MNIST dataset
+	mnist = tf.keras.datasets.mnist
+	(f_train, l_train), (f_test, l_test) = mnist.load_data()
 
-	f_train = f_train[f_names]
-	print(l_train.value_counts())
-	print(l_test.value_counts())
-	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
+	# Filter only 4s and 9s
+	train_filter = np.logical_or(l_train == 4, l_train == 9)
+	test_filter = np.logical_or(l_test == 4, l_test == 9)
 
-	index_train = f_train.index
-	f_train = f_train.to_numpy()
-	f_test = f_test.to_numpy()
+	f_train = f_train[train_filter]
+	l_train = l_train[train_filter]
+	f_test = f_test[test_filter]
+	l_test = l_test[test_filter]
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	# Flatten the image data
+	f_train = f_train.reshape((-1, 28 * 28))
+	f_test = f_test.reshape((-1, 28 * 28))
+
+	# Convert pixel values to float32 and scale them between 0 and 1
+	f_train = f_train.astype(np.float32) / 255.0
+	f_test = f_test.astype(np.float32) / 255.0
+
+	# Print the shape of the matrices
+	print("f_train shape:", f_train.shape)
+	print("f_test shape:", f_test.shape)
+	print("l_train shape:", l_train.shape)
+	print("l_test shape:", l_test.shape)
+
+	sketch_dim = [10, 20, 30, 40, 50]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
