@@ -81,9 +81,9 @@ def get_sens_list(f_train):
 
 def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	classifier = method_to_obj[alg]
-	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
+	classifier.fit(f_train, l_train.reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred) 
+	return metrics.accuracy_score(l_test.reshape(l_test.size), pred) 
 
 if __name__ == "__main__":
 	num_trials = 25
