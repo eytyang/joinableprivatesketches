@@ -110,9 +110,11 @@ if __name__ == "__main__":
 	f_test = f_test.astype(np.float32) / 255.0
 
 	# Create pandas DataFrames
-	index_train = f_train.index
-	series_train = pd.Series(l_train, name='label')
-	series_test = pd.Series(l_test, name='label')
+	f_train = pd.DataFrame(f_train)
+	l_train = pd.Series(l_train, name='label')
+	f_test = pd.DataFrame(f_test)
+	l_test = pd.Series(l_test, name='label')
+	index_train = df_train.index
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
