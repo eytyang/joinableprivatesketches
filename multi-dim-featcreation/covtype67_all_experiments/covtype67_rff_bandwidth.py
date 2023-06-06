@@ -130,16 +130,10 @@ if __name__ == "__main__":
 			for trial in range(num_trials):
 				omega, beta, f_train_rff = get_rffs(f_train, dim, bandwidth)
 				f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
-				f_train_rff_copy = f_train_rff.copy()
 
-				print(np.dot(f_train_rff[0, :], f_train_rff[1, :]))
-				print(f_train_rff[0, :], f_train_rff[1, :])
-				for i in range(20):
-					# Make the features binary
-					f_train_rff = rand_round(f_train_rff_copy)
-					print(np.dot(f_train_rff[0, :], f_train_rff[1, :]))
-					print(f_train_rff[0, :], f_train_rff[1, :])
-					f_test_rff = rand_round(f_test_rff)
+				# Make the features binary
+				f_train_rff = rand_round(f_train_rff)
+				f_test_rff = rand_round(f_test_rff)
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
