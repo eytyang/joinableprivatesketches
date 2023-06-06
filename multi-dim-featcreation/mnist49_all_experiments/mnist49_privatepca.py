@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['RandomForest', 'KNN']
+	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'MultiLayerPerceptron', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 				f_test_priv = np.matmul(f_test, priv_pca)
 
 				sens_list = get_sens_list(f_train_priv)
-				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
+				f_train_priv = pd.DataFrame(data = f_train_priv, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
 
