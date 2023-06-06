@@ -18,13 +18,17 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 method_to_obj = {'NaiveBayes': GaussianNB(),
 				'DecisionTree': DecisionTreeClassifier(),
 				'LogisticRegression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier()}
+				'RandomForest': RandomForestClassifier(n_jobs = 2),
+				'MultiLayerPerceptron': MLPClassifier(),
+				'KNN': KNeighborsClassifier(n_jobs = 2)}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
