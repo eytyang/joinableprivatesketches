@@ -81,9 +81,9 @@ def get_sens_list(f_train):
 
 def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	classifier = method_to_obj[alg]
-	classifier.fit(f_train, l_train.reshape(l_train.size))
+	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	return metrics.accuracy_score(l_test.reshape(l_test.size), pred) 
+	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred) 
 
 if __name__ == "__main__":
 	num_trials = 25
@@ -108,6 +108,11 @@ if __name__ == "__main__":
 	# Convert pixel values to float32 and scale them between 0 and 1
 	f_train = f_train.astype(np.float32) / 255.0
 	f_test = f_test.astype(np.float32) / 255.0
+
+	# Create pandas DataFrames
+	index_train = f_train.index
+	series_train = pd.Series(l_train, name='label')
+	series_test = pd.Series(l_test, name='label')
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
@@ -164,7 +169,7 @@ if __name__ == "__main__":
 				f_test_priv = np.matmul(f_test, priv_pca)
 
 				sens_list = get_sens_list(f_train_priv)
-				f_train_priv = pd.DataFrame(data = f_train_priv, columns = ["Comp %i" % (i + 1) for i in range(dim)])
+				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
 
