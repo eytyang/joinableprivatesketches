@@ -75,6 +75,7 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 
 if __name__ == "__main__":
 	num_trials = 25
+	bandwidth = 10
 
 	# Load MNIST dataset
 	mnist = tf.keras.datasets.mnist
