@@ -111,9 +111,9 @@ if __name__ == "__main__":
 
 	# Create pandas DataFrames
 	f_train = pd.DataFrame(f_train)
-	l_train = pd.Series(l_train, index = f_train.index, name = 'label')
+	l_train = pd.DataFrame(l_train, index = f_train.index, columns = ['label'])
 	f_test = pd.DataFrame(f_test)
-	l_test = pd.Series(l_test, index = f_test.index, name = 'label')
+	l_test = pd.DataFrame(l_test, index = f_test.index, columns = ['label'])
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
