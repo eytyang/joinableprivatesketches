@@ -110,25 +110,26 @@ if __name__ == "__main__":
 	f_test = f_test.astype(np.float32) / 255.0
 
 	# Create pandas DataFrames
-	f_train = pd.DataFrame(f_train)
-	l_train = pd.DataFrame(l_train, index = f_train.index, columns = ['label'])
-	f_test = pd.DataFrame(f_test)
-	l_test = pd.DataFrame(l_test, index = f_test.index, columns = ['label'])
+	all_train = pd.DataFrame(f_train)
+	all_train['label'] = l_train
+	all_test = pd.DataFrame(f_test)
+	all_test['label'] = l_test
 	
 	# Bias the training and test sets
-	index4_train = f_train.index[f_train['label'] == 4] 
-	subsample9_train = f_train[f_train['label'] == 9].subsample(n = int(len(f_train) / 5))
+	index4_train = all_train.index[f_train['label'] == 4] 
+	subsample9_train = all_train[f_train['label'] == 9].subsample(n = int(len(f_train) / 5))
 	index9_train = subsample9_train.index
-	index_train = index4.union(index9)
-	f_train = f_train.loc(index_train).to_numpy()
+	index_train = index4_train.union(index9_train)
+	f_train = f_train.loc(index_train).drop('label', axis = 1).to_numpy()
 	l_train_ctrl = l_train.loc(index_train)
+	l_train = all_train['label']
 	
 	index4_test = f_test.index[f_test['label'] == 4] 
 	subsample9_test = f_test[f_test['label'] == 9].subsample(n = int(len(f_test) / 5))
 	index9_test = subsample9_test.index
-	index_test = index4.union(index9)
-	f_test = f_test.loc(index_est).to_numpy()
-	l_test = l_test.loc(f_test)
+	index_test = index4_test.union(index9_test)
+	f_test = f_test.loc(index_est).drop('label', axis = 1).to_numpy()
+	l_test = l_test.loc(index_test)
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
