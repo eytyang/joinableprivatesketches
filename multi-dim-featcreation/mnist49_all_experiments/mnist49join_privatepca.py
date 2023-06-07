@@ -120,17 +120,17 @@ if __name__ == "__main__":
 	subsample9_train = all_train[all_train['label'] == 9].sample(n = int(len(all_train) / 5))
 	index9_train = subsample9_train.index
 	index_train = index4_train.union(index9_train)
-	print(all_train.loc(index_train).head())
-	f_train = all_train.loc(index_train).drop('label', axis = 1).to_numpy()
-	l_train_ctrl = l_train.loc(index_train)
+	print(all_train.loc[index_train].head())
+	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
+	l_train_ctrl = l_train.loc[index_train]
 	l_train = all_train['label']
 	
 	index4_test = all_test.index[all_test['label'] == 4] 
 	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(len(all_test) / 5))
 	index9_test = subsample9_test.index
 	index_test = index4_test.union(index9_test)
-	f_test = all_test.loc(index_est).drop('label', axis = 1).to_numpy()
-	l_test = l_test.loc(index_test)
+	f_test = all_test.loc[index_test].drop('label', axis = 1).to_numpy()
+	l_test = l_test.loc[index_test]
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
