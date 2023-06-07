@@ -122,7 +122,7 @@ if __name__ == "__main__":
 	index_train = index4_train.union(index9_train)
 	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
 	l_train_ctrl = all_train['label'].loc[index_train]
-	l_train = all_train['label']
+	l_train = all_train['label'].to_frame()
 	
 	index4_test = all_test.index[all_test['label'] == 4] 
 	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(len(all_test) / 5))
