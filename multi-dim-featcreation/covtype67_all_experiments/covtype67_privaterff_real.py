@@ -2,6 +2,7 @@ from sklearnex import patch_sklearn
 patch_sklearn()
 
 import numpy as np
+import scipy as sc
 import matplotlib.pyplot as plt
 import pandas as pd
 from statistics import median
@@ -54,35 +55,26 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 		f_test, l_test = df_test[f_names], df_test[l_name]
 	return f_train, l_train, f_test, l_test
 
-def get_random_orthonormal(vec_dim, num_vecs):
-	rand_mat = np.random.normal(size = (vec_dim, num_vecs))
-	Q, R = np.linalg.qr(rand_mat)
-	return Q
+def round_threshold(f):
+	return 0.5 * (1.0 - f / (2 ** 0.5))
 
-def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001): 
-	cov = np.matmul(mat.T, mat)
-	X = get_random_orthonormal(cov.shape[1], dim)
-	if eps is not None:
-		sigma = (1.0 / eps) * ((4 * dim * num_iters * log(1.0 / delta)) ** 0.5)
+def rand_round(mat):
+	round_threshold_vec = np.vectorize(round_threshold)
+	thres = round_threshold_vec(mat)
+	rand_mat = np.random.uniform(size = (mat.shape[0], mat.shape[1]))
+	binary_mat = rand_mat > thres 
+	return (binary_mat * 2 * (2 ** (0.5))) - 2 ** (0.5)
 
-	for i in range(num_iters):
-		sens = np.absolute(X).max()
-		if eps is None:
-			Y = np.matmul(cov, X)
-		else:
-			Y = np.matmul(cov, X) + np.random.normal(scale = (sens * sigma) ** 2, size = (cov.shape[0], dim))
-		X, R = np.linalg.qr(Y)
-	return X
+def get_rffs(mat, dim, bandwidth):
+	omega = (2 ** (0.5)) * np.random.normal(loc = 0, scale = 1.0 / bandwidth, size = (mat.shape[1], dim))
+	beta = np.random.uniform(0, 2 * np.pi, dim).reshape(1, -1)
+	return omega, beta, (2 ** (0.5)) * np.cos(np.matmul(mat, omega) + beta)
 
-def get_sens_list(f_train):
-	f_train_abs = np.absolute(f_train)
-	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 
-
-def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
+def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 	classifier = method_to_obj[alg]
 	classifier.fit(f_train, l_train.to_numpy().reshape(l_train.size))
 	pred = classifier.predict(f_test)
-	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred) 
+	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred)
 
 if __name__ == "__main__":
 	num_trials = 25
@@ -110,11 +102,14 @@ if __name__ == "__main__":
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
+	# Compute bandwidth
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	bandwidth = 1800
+
 	sketch_dim = [5, 10, 15, 20, 25]
-	num_iters = 50
-	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest', 'KNN']
+	algs = ['RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -122,70 +117,74 @@ if __name__ == "__main__":
 	for alg in algs:
 		loss_dict[alg] = {}
 		loss_dict[alg]['Dimension'] = []
-		loss_dict[alg]['PCA'] = []
+		loss_dict[alg]['RFF Real'] = []
+		loss_dict[alg]['RFF Real 25'] = []
+		loss_dict[alg]['RFF Real 75'] = []
 		for total_eps in total_eps_list:
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
 		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
-
 	print(loss_ctrl)
-
+	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 
-		pca = priv_power_method(f_train, num_iters, dim)
-		f_train_pca = np.matmul(f_train, pca)
-		f_test_pca = np.matmul(f_test, pca)
+		# TODO: Optimize this later. 
 		for alg in algs:
-			loss_dict[alg]['Dimension'].append(dim)
-			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train, f_test_pca, l_test, alg))
-			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
-
-		for total_eps in total_eps_list:
-			print('Total Eps = %s' % str(total_eps))
-			# eps = total_eps - eps_pca
-			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			trial_dict[alg] = {}
+			trial_dict[alg]['RFF Real'] = []
+			for total_eps in total_eps_list:
+				trial_dict[alg]['Eps = %s' % str(total_eps)] = []
 			
+		for trial in range(num_trials):
+			print('Trial %i' % (trial + 1))
+			omega, beta, f_train_rff = get_rffs(f_train, dim, bandwidth)
+			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
+
 			for alg in algs:
-				trial_dict[alg] = []
-			
-			for trial in range(num_trials):
-				print('Trial %i' % (trial + 1))
-				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
-				f_train_priv = np.matmul(f_train, priv_pca)
-				f_test_priv = np.matmul(f_test, priv_pca)
+				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
 
-				sens_list = get_sens_list(f_train_priv)
-				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
-				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
-				dp_join.join(l_train, f_train_priv)
+			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
+			sens_list = [2 ** (0.5) for i in range(dim)]
+			for total_eps in total_eps_list:
+				print('Total Eps = %s' % str(total_eps))
+				eps_memb = 10000 # total_eps / (dim + 1)
+				eps_val = total_eps # - eps_memb
+
+				dp_join = DP_Join(eps_memb, eps_val, sens_list) 
+				dp_join.join(l_train, f_train_rff, 'Real Clip') 
 
 				for alg in algs:
-					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
+					trial_dict[alg]['Eps = %s' % total_eps].append(get_loss(dp_join.features, dp_join.labels, f_test_rff, l_test, alg))
 
-			for alg in algs:
-				loss_dict[alg]['Eps = %s' % str(total_eps)].append(median(trial_dict[alg]))
-				loss_dict[alg]['Eps = %s 25' % str(total_eps)].append(median(trial_dict[alg]) - np.percentile(trial_dict[alg], 25))
-				loss_dict[alg]['Eps = %s 75' % str(total_eps)].append(np.percentile(trial_dict[alg], 75) - median(trial_dict[alg]))
+		for alg in algs:
+			loss_dict[alg]['Dimension'].append(dim)
+			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
+			loss_dict[alg]['RFF Real'].append(median(trial_dict[alg]['RFF Real']))
+			loss_dict[alg]['RFF Real 25'].append(median(trial_dict[alg]['RFF Real']) - np.percentile(trial_dict[alg]['RFF Real'], 25))
+			loss_dict[alg]['RFF Real 75'].append(np.percentile(trial_dict[alg]['RFF Real'], 75) - median(trial_dict[alg]['RFF Real']))
+			for total_eps in total_eps_list:
+				loss_dict[alg]['Eps = %s' % str(total_eps)].append(median(trial_dict[alg]['Eps = %s' % str(total_eps)]))
+				loss_dict[alg]['Eps = %s 25' % str(total_eps)].append(median(trial_dict[alg]['Eps = %s' % str(total_eps)]) - np.percentile(trial_dict[alg]['Eps = %s' % str(total_eps)], 25))
+				loss_dict[alg]['Eps = %s 75' % str(total_eps)].append(np.percentile(trial_dict[alg]['Eps = %s' % str(total_eps)], 75) - median(trial_dict[alg]['Eps = %s' % str(total_eps)]))
 		print()
 
 	for alg in algs:
 		alg_df = pd.DataFrame(loss_dict[alg])
 		alg_df = alg_df.set_index('Dimension')
-		alg_df = alg_df
+		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype67_pca_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features')
-		plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
-			yerr = np.zeros(shape = (2, len(alg_df))), label = 'PCA')
+		plt.errorbar(alg_df.index + shift, alg_df['RFF Real'], \
+			yerr = alg_df[['RFF Real 25', 'RFF Real 75']].to_numpy().T, label = 'RFF Real')
 		shift += 0.05
 		for total_eps in total_eps_list:
 			plt.errorbar(alg_df.index + shift, alg_df['Eps = %s' % str(total_eps)], \

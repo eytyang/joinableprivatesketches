@@ -2,6 +2,7 @@ from sklearnex import patch_sklearn
 patch_sklearn()
 
 import numpy as np
+import scipy as sc
 import matplotlib.pyplot as plt
 import pandas as pd
 from statistics import median
@@ -65,7 +66,7 @@ def rand_round(mat):
 	return (binary_mat * 2 * (2 ** (0.5))) - 2 ** (0.5)
 
 def get_rffs(mat, dim, bandwidth):
-	omega = (2 ** (0.5)) * np.random.normal(0, 1, size = (mat.shape[1], dim)) / (bandwidth ** 2)
+	omega = (2 ** (0.5)) * np.random.normal(0, 1.0 / bandwidth, size = (mat.shape[1], dim))
 	beta = np.random.uniform(0, 2 * np.pi, dim).reshape(1, -1)
 	return omega, beta, (2 ** (0.5)) * np.cos(np.matmul(mat, omega) + beta)
 
@@ -77,7 +78,6 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 
 if __name__ == "__main__":
 	num_trials = 25
-	bandwidth = 40
 
 	file = '../../data/covtype.csv'
 	l_name = ['Cover_Type']
@@ -101,6 +101,11 @@ if __name__ == "__main__":
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
+
+	# Compute bandwidth
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# print(np.median(pair_dists))
+	bandwidth = 1800
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -137,10 +142,12 @@ if __name__ == "__main__":
 			print('Trial %i' % (trial + 1))
 			omega, beta, f_train_rff = get_rffs(f_train, dim, bandwidth)
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
+			print(np.dot(f_test_rff[0, :], f_test_rff[1, :]))
 
 			# Make the features binary
 			f_train_rff = rand_round(f_train_rff)
 			f_test_rff = rand_round(f_test_rff)
+			print(np.dot(f_test_rff[0, :], f_test_rff[1, :]))
 
 			for alg in algs:
 				trial_dict[alg]['RFF Binary'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
@@ -173,10 +180,10 @@ if __name__ == "__main__":
 	for alg in algs:
 		alg_df = pd.DataFrame(loss_dict[alg])
 		alg_df = alg_df.set_index('Dimension')
-		alg_df = alg_df / loss_ctrl[alg]
+		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67_rffbinary_%s_limit_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67_rffbinary_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))

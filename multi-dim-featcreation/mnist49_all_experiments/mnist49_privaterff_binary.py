@@ -75,7 +75,6 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 
 if __name__ == "__main__":
 	num_trials = 25
-	bandwidth = 10
 
 	# Load MNIST dataset
 	mnist = tf.keras.datasets.mnist
@@ -97,6 +96,10 @@ if __name__ == "__main__":
 	# Convert pixel values to float32 and scale them between 0 and 1
 	f_train = f_train.astype(np.float32) / 255.0
 	f_test = f_test.astype(np.float32) / 255.0
+
+	# Compute bandwidth
+	pair_dists = sc.spatial.distance.pdist(f_train)
+	bandwidth = np.median(pair_dists)
 
 	# Create pandas DataFrames
 	f_train = pd.DataFrame(f_train)
@@ -187,7 +190,7 @@ if __name__ == "__main__":
 	for alg in algs:
 		alg_df = pd.DataFrame(loss_dict[alg])
 		alg_df = alg_df.set_index('Dimension')
-		alg_df = alg_df / loss_ctrl[alg]
+		alg_df = alg_df 
 		print(alg_df)
 
 		file = 'mnist49_all_experiments/covtype_rffbinarylaplace_%s_limit_trials=%i' % (alg.lower(), num_trials)

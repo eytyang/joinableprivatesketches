@@ -96,6 +96,9 @@ if __name__ == "__main__":
 	f_train = f_train.astype(np.float32) / 255.0
 	f_test = f_test.astype(np.float32) / 255.0
 
+	heuristic_bandwidth = (f_train.shape[1] * f_train.var()) ** 0.5
+	print(heuristic_bandwidth)
+
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
 	print("f_test shape:", f_test.shape)
@@ -103,7 +106,8 @@ if __name__ == "__main__":
 	print("l_test shape:", l_test.shape)
 
 	sketch_dim = [10, 20, 30, 40, 50]
-	bandwidth_list = [5, 10, 15, 20, 25]
+	# bandwidth_list = [5, 10, 15, 20, 25]
+	bandwidth_list = [heuristic_bandwidth]
 	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'MultiLayerPerceptron', 'KNN']
 
 	trial_dict = {}
