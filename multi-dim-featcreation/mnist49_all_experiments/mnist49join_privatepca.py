@@ -173,7 +173,7 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_memb = eps / (dim + 1)
+			eps_memb = total_eps / (dim + 1)
 			eps_val = total_eps - eps_memb
 			
 			for alg in algs:
