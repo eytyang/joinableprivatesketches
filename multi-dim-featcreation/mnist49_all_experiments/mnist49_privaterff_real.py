@@ -102,9 +102,9 @@ if __name__ == "__main__":
 	f_test = f_test.astype(np.float32) / 255.0
 
 	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print("Bandwidth: ", bandwidth)
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	bandwidth = 10
 
 	# Create pandas DataFrames
 	f_train = pd.DataFrame(f_train)
