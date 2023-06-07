@@ -47,7 +47,7 @@ class DP_Join:
 		df_dp[self.known_cols[0]] = df_dp[self.known_cols[0]].multiply(df_dp['sign'], axis = 'index')
 		
 		if data_type == 'Real' or data_type == 'Real Clip':
-			val = RealValued_Sketch(self.eps_val, self.sens_list, index_universe, self.num_buckets)
+			val = RealValued_Sketch(self.eps_val, self.sens_list, df_dp.index, self.num_buckets)
 			noise = val.get_noise(df_private.columns)
 
 			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else 0)
@@ -56,7 +56,7 @@ class DP_Join:
 			if data_type == 'Real Clip':
 				self.features = np.clip(self.features, -1 * 2 ** 0.5, 2 ** 0.5)
 		elif data_type == 'Binary':
-			val = Binary_Sketch(self.eps_val, index_universe, self.num_buckets)
+			val = Binary_Sketch(self.eps_val, df_dp.index, self.num_buckets)
 			signs = val.get_signs(df_private.columns)
 
 			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else np.random.choice([-1, 1]))
