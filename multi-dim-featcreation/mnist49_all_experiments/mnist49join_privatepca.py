@@ -120,7 +120,6 @@ if __name__ == "__main__":
 	subsample9_train = all_train[all_train['label'] == 9].sample(n = int(len(all_train) / 5))
 	index9_train = subsample9_train.index
 	index_train = index4_train.union(index9_train)
-	print(all_train.loc[index_train].head())
 	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
 	l_train_ctrl = all_train['label'].loc[index_train]
 	l_train = all_train['label']
@@ -155,7 +154,7 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 
 	print(loss_ctrl)
@@ -174,8 +173,8 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			eps_memb = eps / (dim + 1)
+			eps_val = total_eps - eps_memb
 			
 			for alg in algs:
 				trial_dict[alg] = []
