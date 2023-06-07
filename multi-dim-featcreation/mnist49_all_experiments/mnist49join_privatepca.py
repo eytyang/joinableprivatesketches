@@ -167,7 +167,7 @@ if __name__ == "__main__":
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)
-			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train, f_test_pca, l_test, alg))
+			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train_ctrl, f_test_pca, l_test, alg))
 			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
 
 		for total_eps in total_eps_list:
