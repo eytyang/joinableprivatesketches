@@ -123,13 +123,20 @@ if __name__ == "__main__":
 	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
 	l_train_ctrl = all_train['label'].loc[index_train]
 	l_train = all_train['label'].to_frame()
-	
+
 	index4_test = all_test.index[all_test['label'] == 4] 
 	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(len(all_test) / 5))
 	index9_test = subsample9_test.index
 	index_test = index4_test.union(index9_test)
 	f_test = all_test.loc[index_test].drop('label', axis = 1).to_numpy()
 	l_test = all_test['label'].loc[index_test]
+
+	l_train_ctrl = l_train_ctrl.replace(4, -1)
+	l_train_ctrl = l_train_ctrl.replace(9, 1)
+	l_train = l_train.replace(4, -1)
+	l_train = l_train.replace(9, 1)
+	l_test = l_test.replace(4, -1)
+	l_test = l_test.replace(9, 1)
 
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
