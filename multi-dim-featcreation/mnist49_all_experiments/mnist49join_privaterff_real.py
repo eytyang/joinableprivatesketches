@@ -137,9 +137,9 @@ if __name__ == "__main__":
 	print("l_test shape:", l_test.shape)
 
 	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print(bandwidth)
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	bandwidth = 10
 
 	sketch_dim = [10, 20, 30, 40, 50]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
