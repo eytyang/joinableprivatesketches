@@ -89,31 +89,36 @@ if __name__ == "__main__":
 
 	file = '../../data/star_classification.csv'
 	l_name = ['class']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name, index_name = 'obj_ID')
+	f_train, l_train, f_test, l_test = prep_data(file, l_name, index_name = 'run_ID')
 	f_names = list(f_train.columns)
-	f_names.remove('run_ID')
+	f_names.remove('obj_ID')
 	f_names.remove('rerun_ID')
-	f_names.remove('field ID')
+	f_names.remove('field_ID')
 	f_names.remove('fiber_ID')
 
 	f_train = f_train[f_names]
-	l_train = l_train[(l_train['class'] == 'Galaxy') | (l_train['class'] == 'Star')]
+	l_train = l_train[(l_train['class'] == 'GALAXY') | (l_train['class'] == 'STAR')]
 	f_train = f_train.loc[l_train.index]
-	f_test = f_test.loc[f_names]
-	l_test = l_test[(l_test['class'] == 'Galaxy') | (l_test['class'] == 'Star')]
+	f_test = f_test[f_names]
+	l_test = l_test[(l_test['class'] == 'GALAXY') | (l_test['class'] == 'STAR')]
 	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace('Galaxy', 1)
-	l_train = l_train.replace('Star', -1)
-	l_test = l_test.replace('Galaxy', 1)
-	l_test = l_test.replace('Star', -1)
+	l_train = l_train.replace('GALAXY', 1)
+	l_train = l_train.replace('STAR', -1)
+	l_test = l_test.replace('GALAXY', 1)
+	l_test = l_test.replace('STAR', -1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
+
+	print(f_train.shape)
+	print(l_train.shape)
+	print(f_test.shape)
+	print(l_test.shape)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
