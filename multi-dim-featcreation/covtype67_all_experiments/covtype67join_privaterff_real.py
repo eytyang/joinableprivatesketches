@@ -89,8 +89,6 @@ if __name__ == "__main__":
 	f_train = f_train.loc[l_train.index]
 	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
 	f_test = f_test.loc[l_test.index]
-	print(l_train.value_counts())
-	print(l_test.value_counts())
 	
 	# Bias the training and test sets
 	index6_train = l_train.index[l_train['Cover_Type'] == 6] 
@@ -114,15 +112,18 @@ if __name__ == "__main__":
 	l_train = l_train.replace(7, 1)
 	l_test = l_test.replace(6, -1)
 	l_test = l_test.replace(7, 1)
+	print(l_train.value_counts())
+	print(l_train_ctrl.value_counts())
+	print(l_test.value_counts())
 
 	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print(bandwidth)
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	bandwidth = 1500
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression']
+	algs = ['AdaBoost', 'KNN', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 	print(loss_ctrl)
 	
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
 			for alg in algs:
-				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
+				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train_ctrl, f_test_rff, l_test, alg))
 
 			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
 			sens_list = [2 ** (0.5) for i in range(dim)]
@@ -191,7 +192,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype67_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67join_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
