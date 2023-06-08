@@ -42,6 +42,10 @@ class DP_Join:
 		self.num_buckets = len(index_universe)
 		df_dp = decode_sketch(df_dp, 'membership', memb)
 		df_dp = df_dp.join(df_private)
+		if data_type == 'Real' or data_type == 'Real Clip':
+			df_dp = df_dp.fillna(0)
+		elif data_type == 'Binary':
+			df_dp = df_dp.fillna(1)
 		df_dp = df_dp[df_dp['membership'] != 0]
 		df_dp['sign'] = np.sign(df_dp['membership'])
 		df_dp[self.known_cols[0]] = df_dp[self.known_cols[0]].multiply(df_dp['sign'], axis = 'index')
