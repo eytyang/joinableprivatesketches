@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [10, 20, 30, 40, 50]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression', 'MultiLayerPerceptron']
+	algs = ['KNN', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
