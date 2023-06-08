@@ -101,11 +101,6 @@ if __name__ == "__main__":
 	f_train = f_train.astype(np.float32) / 255.0
 	f_test = f_test.astype(np.float32) / 255.0
 
-	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print(bandwidth)
-
 	# Create pandas DataFrames
 	all_train = pd.DataFrame(f_train)
 	all_train['label'] = l_train
@@ -140,6 +135,11 @@ if __name__ == "__main__":
 	print("f_test shape:", f_test.shape)
 	print("l_train shape:", l_train.shape)
 	print("l_test shape:", l_test.shape)
+
+	# Compute bandwidth
+	pair_dists = sc.spatial.distance.pdist(f_train)
+	bandwidth = np.median(pair_dists)
+	print(bandwidth)
 
 	sketch_dim = [10, 20, 30, 40, 50]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
