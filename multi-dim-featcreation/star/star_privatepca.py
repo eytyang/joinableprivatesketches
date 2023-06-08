@@ -90,7 +90,7 @@ if __name__ == "__main__":
 	file = '../../data/star_classification.csv'
 	l_name = ['class']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name, index_name = 'obj_ID')
-	f_names = f_train.columns
+	f_names = list(f_train.columns)
 	f_names.remove('run_ID')
 	f_names.remove('rerun_ID')
 	f_names.remove('field ID')
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest', 'KNN']
+	algs = ['AdaBoost', 'LogisticRegression', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
