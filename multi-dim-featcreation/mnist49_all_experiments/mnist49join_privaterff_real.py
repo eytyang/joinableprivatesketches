@@ -158,7 +158,7 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 	print(loss_ctrl)
 	
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
 			for alg in algs:
-				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
+				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train_ctrl, f_test_rff, l_test, alg))
 
 			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
 			sens_list = [2 ** (0.5) for i in range(dim)]
