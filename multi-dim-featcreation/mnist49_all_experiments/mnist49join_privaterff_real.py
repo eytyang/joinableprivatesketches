@@ -164,7 +164,6 @@ if __name__ == "__main__":
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
-		print(bandwidth)
 
 		# TODO: Optimize this later. 
 		for alg in algs:
