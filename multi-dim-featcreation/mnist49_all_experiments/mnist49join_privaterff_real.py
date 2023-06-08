@@ -102,9 +102,9 @@ if __name__ == "__main__":
 	f_test = f_test.astype(np.float32) / 255.0
 
 	# Compute bandwidth
-	# pair_dists = sc.spatial.distance.pdist(f_train)
-	# bandwidth = np.median(pair_dists)
-	bandwidth = 10
+	pair_dists = sc.spatial.distance.pdist(f_train)
+	bandwidth = np.median(pair_dists)
+	print(bandwidth)
 
 	# Create pandas DataFrames
 	all_train = pd.DataFrame(f_train)
@@ -164,6 +164,7 @@ if __name__ == "__main__":
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
+		print(bandwidth)
 
 		# TODO: Optimize this later. 
 		for alg in algs:
