@@ -89,9 +89,10 @@ if __name__ == "__main__":
 
 	file = '../../data/star_classification.csv'
 	l_name = ['class']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name, index_name = 'run_ID')
+	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 	f_names = list(f_train.columns)
 	f_names.remove('obj_ID')
+	f_names.remove('run_ID')
 	f_names.remove('rerun_ID')
 	f_names.remove('field_ID')
 	f_names.remove('fiber_ID')
