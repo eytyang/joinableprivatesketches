@@ -121,7 +121,7 @@ if __name__ == "__main__":
 	print(f_test.shape)
 	print(l_test.shape)
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	sketch_dim = [2, 4, 6, 8, 10]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
