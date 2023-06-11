@@ -96,6 +96,9 @@ if __name__ == "__main__":
 	f_names.remove('rerun_ID')
 	f_names.remove('field_ID')
 	f_names.remove('fiber_ID')
+	f_names.remove('spec_obj_ID')
+	f_names.remove('plate')
+	f_names.remove('MJD')
 
 	f_train = f_train[f_names]
 	l_train = l_train[(l_train['class'] == 'GALAXY') | (l_train['class'] == 'STAR')]
@@ -121,7 +124,7 @@ if __name__ == "__main__":
 	print(f_test.shape)
 	print(l_test.shape)
 
-	sketch_dim = [2, 4, 6, 8, 10]
+	sketch_dim = [1, 2, 3, 4, 5]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]

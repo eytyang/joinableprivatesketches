@@ -88,6 +88,9 @@ if __name__ == "__main__":
 	f_names.remove('rerun_ID')
 	f_names.remove('field_ID')
 	f_names.remove('fiber_ID')
+	f_names.remove('spec_obj_ID')
+	f_names.remove('plate')
+	f_names.remove('MJD')
 
 	f_train = f_train[f_names]
 	l_train = l_train[(l_train['class'] == 'GALAXY') | (l_train['class'] == 'STAR')]
