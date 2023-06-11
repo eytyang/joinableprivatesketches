@@ -79,37 +79,45 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/covtype.csv'
-	l_name = ['Cover_Type']
+	file = '../../data/star_classification.csv'
+	l_name = ['class']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = f_train.columns
+	f_names = list(f_train.columns)
+	f_names.remove('obj_ID')
+	f_names.remove('run_ID')
+	f_names.remove('rerun_ID')
+	f_names.remove('field_ID')
+	f_names.remove('fiber_ID')
 
 	f_train = f_train[f_names]
-	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	l_train = l_train[(l_train['class'] == 'GALAXY') | (l_train['class'] == 'STAR')]
 	f_train = f_train.loc[l_train.index]
-	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	f_test = f_test[f_names]
+	l_test = l_test[(l_test['class'] == 'GALAXY') | (l_test['class'] == 'STAR')]
 	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(6, 0)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, 0)
-	l_test = l_test.replace(7, 1)
+	l_train = l_train.replace('GALAXY', 1)
+	l_train = l_train.replace('STAR', -1)
+	l_test = l_test.replace('GALAXY', 1)
+	l_test = l_test.replace('STAR', -1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
-	# Compute bandwidth
-	# pair_dists = sc.spatial.distance.pdist(f_train)
-	# bandwidth = np.median(pair_dists)
-	bandwidth = 1800
+	print(f_train.shape)
+	print(l_train.shape)
+	print(f_test.shape)
+	print(l_test.shape)
 
 	sketch_dim = [5, 10, 15, 20, 25]
+	num_iters = 50
+	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression']
+	algs = ['AdaBoost', 'LogisticRegression', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -177,7 +185,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype67_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'star_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
