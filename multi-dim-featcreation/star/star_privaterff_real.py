@@ -113,6 +113,14 @@ if __name__ == "__main__":
 	print(f_test.shape)
 	print(l_test.shape)
 
+	# Compute bandwidth
+	bandwidth_list = []
+	for i in range(10):
+		rand_rows = np.random.choice(f_train.shape[0], 10000)
+		pair_dists = sc.spatial.distance.pdist(f_train[rand_rows, :])
+		bandwidth_list.append(np.median(pair_dists))
+	bandwidth = sum(bandwidth_list) / 10
+
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
@@ -138,6 +146,7 @@ if __name__ == "__main__":
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
+		print(bandwidth)
 
 		# TODO: Optimize this later. 
 		for alg in algs:
