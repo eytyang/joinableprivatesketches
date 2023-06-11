@@ -114,12 +114,13 @@ if __name__ == "__main__":
 	print(l_test.shape)
 
 	# Compute bandwidth
-	bandwidth_list = []
-	for i in range(10):
-		rand_rows = np.random.choice(f_train.shape[0], 10000)
-		pair_dists = sc.spatial.distance.pdist(f_train[rand_rows, :])
-		bandwidth_list.append(np.median(pair_dists))
-	bandwidth = sum(bandwidth_list) / 10
+	# bandwidth_list = []
+	# for i in range(10):
+	# 	rand_rows = np.random.choice(f_train.shape[0], 10000)
+	# 	pair_dists = sc.spatial.distance.pdist(f_train[rand_rows, :])
+	# 	bandwidth_list.append(np.median(pair_dists))
+	# bandwidth = sum(bandwidth_list) / 10
+	bandwidth = 3 * (10 ** 18)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
