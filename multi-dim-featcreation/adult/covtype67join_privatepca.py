@@ -42,8 +42,8 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 	if f_names is None:
 		f_names = list(df.columns)
 		f_names.remove(l_name[0])
-	categorical = df[f_names].select_dtypes(include=['object', 'bool']).columns
-	df = pd.get_dummies(data = df, columns= categorical)
+	if center_data:
+		df = center(center(df, f_names), l_name)
 
 	df_train, df_test = train_test_split(df, test_size = test_size)
 	f_train, l_train = df_train[f_names], df_train[l_name]
@@ -87,23 +87,41 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../data/adult.csv'
-	l_name = ['income']
+	file = '../../data/covtype.csv'
+	l_name = ['Cover_Type']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	print(f_train.head(), l_train.head())
-
 	f_names = f_train.columns
-	print(f_names)
-	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace('<=50K', -1)
-	l_train = l_train.replace('>50K', 1)
-	l_test = l_test.replace('<=50K', -1)
-	l_test = l_test.replace('>50K', 1)
 
-	index_train = f_train.index
-	f_train = f_train.to_numpy()
-	f_test = f_test.to_numpy()
+	f_train = f_train[f_names]
+	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	f_train = f_train.loc[l_train.index]
+	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	f_test = f_test.loc[l_test.index]
+	print(l_train.value_counts())
+	print(l_test.value_counts())
+	
+	# Bias the training and test sets
+	index6_train = l_train.index[l_train['Cover_Type'] == 6] 
+	subsample7_train = l_train[l_train['Cover_Type'] == 7].sample(n = int(len(l_train) / 5))
+	index7_train = subsample7_train.index
+	index_train = index6_train.union(index7_train)
+	f_train = f_train.loc[index_train].to_numpy()
+	l_train_ctrl = l_train.loc[index_train]
+	# l_train = l_train.to_frame()
+
+	index6_test = l_test.index[l_test['Cover_Type'] == 6] 
+	subsample7_test = l_test[l_test['Cover_Type'] == 7].sample(n = int(len(l_test) / 5))
+	index7_test = subsample7_test.index
+	index_test = index6_test.union(index7_test)
+	f_test = f_test.loc[index_test].to_numpy()
+	l_test = l_test.loc[index_test]
+
+	l_train_ctrl = l_train_ctrl.replace(6, -1)
+	l_train_ctrl = l_train_ctrl.replace(7, 1)
+	l_train = l_train.replace(6, -1)
+	l_train = l_train.replace(7, 1)
+	l_test = l_test.replace(6, -1)
+	l_test = l_test.replace(7, 1)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
@@ -122,7 +140,7 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 
 	print(loss_ctrl)
@@ -135,14 +153,14 @@ if __name__ == "__main__":
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)
-			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train, f_test_pca, l_test, alg))
+			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train_ctrl, f_test_pca, l_test, alg))
 			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
 
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			eps_memb = total_eps / (dim + 1)
+			eps_val = total_eps - eps_memb
 			
 			for alg in algs:
 				trial_dict[alg] = []
@@ -173,7 +191,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'adult_pca_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67join_pca_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
