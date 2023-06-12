@@ -123,7 +123,6 @@ if __name__ == "__main__":
 		pair_dists = sc.spatial.distance.pdist(f_train[rand_rows, :])
 		bandwidth_list.append(np.median(pair_dists))
 	bandwidth = sum(bandwidth_list) / 10
-	bandwidth = 100
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
