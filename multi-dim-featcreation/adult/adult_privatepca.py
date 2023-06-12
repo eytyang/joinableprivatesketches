@@ -45,6 +45,11 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 	categorical = df[f_names].select_dtypes(include=['object', 'bool']).columns
 	df = pd.get_dummies(data = df, columns= categorical)
 
+	f_names = list(df.columns)
+	f_names.remove(l_name[0])
+	if center_data:
+		df = center(center(df, f_names), l_name)
+
 	df_train, df_test = train_test_split(df, test_size = test_size)
 	f_train, l_train = df_train[f_names], df_train[l_name]
 
@@ -87,7 +92,7 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../data/adult.csv'
+	file = '../../data/adult.csv'
 	l_name = ['income']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
 	print(f_train.head(), l_train.head())
@@ -109,7 +114,7 @@ if __name__ == "__main__":
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest', 'KNN']
+	algs = ['AdaBoost', 'LogisticRegression', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
