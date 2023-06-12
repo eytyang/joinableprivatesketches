@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
 	# Compute bandwidth
 	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = append(np.median(pair_dists))
+	bandwidth = np.median(pair_dists)
 	print(bandwidth)
 	# bandwidth_list = []
 	# for i in range(10):
