@@ -43,6 +43,11 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 	if f_names is None:
 		f_names = list(df.columns)
 		f_names.remove(l_name[0])
+	categorical = df[f_names].select_dtypes(include=['object', 'bool']).columns
+	df = pd.get_dummies(data = df, columns= categorical)
+
+	f_names = list(df.columns)
+	f_names.remove(l_name[0])
 	if center_data:
 		df = center(center(df, f_names), l_name)
 
@@ -79,33 +84,28 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/covtype.csv'
-	l_name = ['Cover_Type']
+	file = '../../data/adult.csv'
+	l_name = ['income']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = f_train.columns
+	print(f_train.head(), l_train.head())
 
-	f_train = f_train[f_names]
-	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
-	f_train = f_train.loc[l_train.index]
-	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
-	f_test = f_test.loc[l_test.index]
-	print(l_train.value_counts())
-	print(l_test.value_counts())
+	f_names = f_train.columns
+	print(f_names)
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(6, 0)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, 0)
-	l_test = l_test.replace(7, 1)
+	l_train = l_train.replace('<=50K', -1)
+	l_train = l_train.replace('>50K', 1)
+	l_test = l_test.replace('<=50K', -1)
+	l_test = l_test.replace('>50K', 1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
 	# Compute bandwidth
-	# pair_dists = sc.spatial.distance.pdist(f_train)
-	# bandwidth = np.median(pair_dists)
-	bandwidth = 1800
+	pair_dists = sc.spatial.distance.pdist(f_train)
+	bandwidth = np.median(pair_dists)
+	print(bandwidth)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -130,6 +130,7 @@ if __name__ == "__main__":
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
+		print(bandwidth)
 
 		# TODO: Optimize this later. 
 		for alg in algs:
