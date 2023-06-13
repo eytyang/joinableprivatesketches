@@ -101,7 +101,7 @@ if __name__ == "__main__":
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
-    print(f_train)
+	print(f_train)
 
 	# Compute bandwidth
 	pair_dists = sc.spatial.distance.pdist(f_train)
