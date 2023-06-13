@@ -108,9 +108,9 @@ if __name__ == "__main__":
 	print(f_train)
 
 	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print(bandwidth)
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	bandwidth = 90000
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
