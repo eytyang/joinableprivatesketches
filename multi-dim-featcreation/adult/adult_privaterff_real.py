@@ -97,6 +97,10 @@ if __name__ == "__main__":
 	l_train = l_train.replace('>50K', 1)
 	l_test = l_test.replace('<=50K', -1)
 	l_test = l_test.replace('>50K', 1)
+	f_train = f_train.replace(True, 1)
+	f_train = f_train.replace(False, 0)
+	f_test = f_test.replace(True, 1)
+	f_test = f_test.replace(False, 0)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
