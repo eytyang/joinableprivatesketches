@@ -85,8 +85,8 @@ if __name__ == "__main__":
 	(f_train, l_train), (f_test, l_test) = mnist.load_data()
 
 	# Filter only 4s and 9s
-	train_filter = np.logical_or(l_train == 4, l_train == 9)
-	test_filter = np.logical_or(l_test == 4, l_test == 9)
+	train_filter = np.logical_or(l_train == 0, l_train == 1)
+	test_filter = np.logical_or(l_test == 0, l_test == 1)
 
 	f_train = f_train[train_filter]
 	l_train = l_train[train_filter]
@@ -102,9 +102,10 @@ if __name__ == "__main__":
 	f_test = f_test.astype(np.float32) / 255.0
 
 	# Compute bandwidth
-	# pair_dists = sc.spatial.distance.pdist(f_train)
-	# bandwidth = np.median(pair_dists)
-	bandwidth = 10
+	pair_dists = sc.spatial.distance.pdist(f_train)
+	bandwidth = np.median(pair_dists)
+	print(bandwidth)
+	# bandwidth = 10
 
 	# Create pandas DataFrames
 	f_train = pd.DataFrame(f_train)
@@ -192,7 +193,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'mnist49_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist01_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
