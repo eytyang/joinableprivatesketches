@@ -12,6 +12,7 @@ import sys
 sys.path.append('../')
 from dp_sketch import DP_Join
 
+import tensorflow as tf
 from sklearn import metrics 
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
@@ -43,11 +44,6 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 	if f_names is None:
 		f_names = list(df.columns)
 		f_names.remove(l_name[0])
-	categorical = df[f_names].select_dtypes(include=['object', 'bool']).columns
-	df = pd.get_dummies(data = df, columns= categorical)
-
-	f_names = list(df.columns)
-	f_names.remove(l_name[0])
 	if center_data:
 		df = center(center(df, f_names), l_name)
 
@@ -84,37 +80,70 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'LogisticRegression'):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/adult.csv'
-	l_name = ['income']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	print(f_train.head(), l_train.head())
+	# Load MNIST dataset
+	mnist = tf.keras.datasets.mnist
+	(f_train, l_train), (f_test, l_test) = mnist.load_data()
 
-	f_names = f_train.columns
-	print(f_names)
+	# Filter only 4s and 9s
+	train_filter = np.logical_or(l_train == 4, l_train == 9)
+	test_filter = np.logical_or(l_test == 4, l_test == 9)
+
+	f_train = f_train[train_filter]
+	l_train = l_train[train_filter]
+	f_test = f_test[test_filter]
+	l_test = l_test[test_filter]
+
+	# Flatten the image data
+	f_train = f_train.reshape((-1, 28 * 28))
+	f_test = f_test.reshape((-1, 28 * 28))
+
+	# Convert pixel values to float32 and scale them between 0 and 1
+	f_train = f_train.astype(np.float32) / 255.0
+	f_test = f_test.astype(np.float32) / 255.0
+
+	# Create pandas DataFrames
+	all_train = pd.DataFrame(f_train)
+	all_train['label'] = l_train
+	all_test = pd.DataFrame(f_test)
+	all_test['label'] = l_test
 	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace('<=50K', -1)
-	l_train = l_train.replace('>50K', 1)
-	l_test = l_test.replace('<=50K', -1)
-	l_test = l_test.replace('>50K', 1)
-	f_train = f_train.replace(True, 1)
-	f_train = f_train.replace(False, 0)
-	f_test = f_test.replace(True, 1)
-	f_test = f_test.replace(False, 0)
+	# Bias the training and test sets
+	index4_train = all_train.index[all_train['label'] == 4] 
+	subsample9_train = all_train[all_train['label'] == 9].sample(n = int(len(all_train) / 5))
+	index9_train = subsample9_train.index
+	index_train = index4_train.union(index9_train)
+	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
+	l_train_ctrl = all_train['label'].loc[index_train]
+	l_train = all_train['label'].to_frame()
+	
+	index4_test = all_test.index[all_test['label'] == 4] 
+	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(len(all_test) / 5))
+	index9_test = subsample9_test.index
+	index_test = index4_test.union(index9_test)
+	f_test = all_test.loc[index_test].drop('label', axis = 1).to_numpy()
+	l_test = all_test['label'].loc[index_test]
 
-	index_train = f_train.index
-	f_train = f_train.to_numpy()
-	f_test = f_test.to_numpy()
-	print(f_train)
+	l_train_ctrl = l_train_ctrl.replace(4, -1)
+	l_train_ctrl = l_train_ctrl.replace(9, 1)
+	l_train = l_train.replace(4, -1)
+	l_train = l_train.replace(9, 1)
+	l_test = l_test.replace(4, -1)
+	l_test = l_test.replace(9, 1)
+
+	# Print the shape of the matrices
+	print("f_train shape:", f_train.shape)
+	print("f_test shape:", f_test.shape)
+	print("l_train shape:", l_train.shape)
+	print("l_test shape:", l_test.shape)
 
 	# Compute bandwidth
 	# pair_dists = sc.spatial.distance.pdist(f_train)
 	# bandwidth = np.median(pair_dists)
-	bandwidth = 90000
+	bandwidth = 10
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	sketch_dim = [10, 20, 30, 40, 50]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression']
+	algs = ['KNN', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -129,13 +158,12 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 	print(loss_ctrl)
 	
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
-		print(bandwidth)
 
 		# TODO: Optimize this later. 
 		for alg in algs:
@@ -150,14 +178,14 @@ if __name__ == "__main__":
 			f_test_rff = 2 ** (0.5) * np.cos(np.matmul(f_test, omega) + beta)
 
 			for alg in algs:
-				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train, f_test_rff, l_test, alg))
+				trial_dict[alg]['RFF Real'].append(get_loss(f_train_rff, l_train_ctrl, f_test_rff, l_test, alg))
 
 			f_train_rff = pd.DataFrame(data = f_train_rff, index = index_train, columns = ["Feat %i" % (i + 1) for i in range(dim)])
 			sens_list = [2 ** (0.5) for i in range(dim)]
 			for total_eps in total_eps_list:
 				print('Total Eps = %s' % str(total_eps))
-				eps_memb = 10000 # total_eps / (dim + 1)
-				eps_val = total_eps # - eps_memb
+				eps_memb = total_eps / (dim + 1)
+				eps_val = total_eps - eps_memb
 
 				dp_join = DP_Join(eps_memb, eps_val, sens_list) 
 				dp_join.join(l_train, f_train_rff, 'Real Clip') 
@@ -183,7 +211,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'adult_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist49join_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
