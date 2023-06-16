@@ -1,14 +1,9 @@
-from sklearnex import patch_sklearn 
-patch_sklearn()
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from statistics import median
 from math import log
 
-import sys
-sys.path.append('../')
 from dp_sketch import DP_Join
 
 from sklearn import metrics 
@@ -20,17 +15,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
 
-method_to_obj = {'NaiveBayes': GaussianNB(),
-				'DecisionTree': DecisionTreeClassifier(),
-				'LogisticRegression': LogisticRegression(),
+method_to_obj = {'Naive Bayes': GaussianNB(),
+				'Decision Tree': DecisionTreeClassifier(),
+				'Logistic Regression': LogisticRegression(),
 				'SVM': SVC(),
 				'AdaBoost': AdaBoostClassifier(), 
-				'RandomForest': RandomForestClassifier(n_jobs = 2),
-				'MultiLayerPerceptron': MLPClassifier(),
-				'KNN': KNeighborsClassifier(n_jobs = 2)}
+				'Random Forest': RandomForestClassifier()}
 
 def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, center_data = False):
 	# Load dataset 
@@ -38,6 +29,7 @@ def prep_data(file, l_name, index_name = None, f_names = None, test_size = 0.2, 
 		df = pd.read_csv(file).set_index(index_name)
 	else:
 		df = pd.read_csv(file)
+	df = df.set_index('Unnamed: 0')
 
 	if f_names is None:
 		f_names = list(df.columns)
@@ -99,47 +91,20 @@ if __name__ == "__main__":
 	
 	f_train, l_train = f_train[f_names], l_train[l_name].loc[f_train.index]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(2, -1)
-	l_train = l_train.replace(3, -1)
-	l_train = l_train.replace(4, -1)
-	l_train = l_train.replace(5, -1)
-	l_test = l_test.replace(2, -1)
-	l_test = l_test.replace(3, -1)
-	l_test = l_test.replace(4, -1)
-	l_test = l_test.replace(5, -1)
-
-
-
-	num_trials = 25
-
-	file = '../../data/covtype.csv'
-	l_name = ['Cover_Type']
-	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = f_train.columns
-
-	f_train = f_train[f_names]
-	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
-	f_train = f_train.loc[l_train.index]
-	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
-	f_test = f_test.loc[l_test.index]
-	print(l_train.value_counts())
-	print(l_test.value_counts())
-	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(6, 0)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, 0)
-	l_test = l_test.replace(7, 1)
+	# l_train = l_train.replace(6, -1)
+	# l_train = l_train.replace(7, 1)
+	# l_test = l_test.replace(6, -1)
+	# l_test = l_test.replace(7, 1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	sketch_dim = [20, 40, 60, 80, 100]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest', 'KNN']
+	total_eps_list = [5.0, 10.0, 15.0, 20.0]
+	algs = ['AdaBoost', 'Random Forest']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -154,7 +119,6 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
 		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
-
 	print(loss_ctrl)
 
 	for dim in sketch_dim:
@@ -200,25 +164,25 @@ if __name__ == "__main__":
 	for alg in algs:
 		alg_df = pd.DataFrame(loss_dict[alg])
 		alg_df = alg_df.set_index('Dimension')
-		alg_df = alg_df
+		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'epilepsy_pca_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'epileptic_pca_%s_largeeps_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
-		shift = -0.25
+		shift = -0.3
 		plt.ylim((0.0, 1.0))
 		plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 			yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features')
 		plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
 			yerr = np.zeros(shape = (2, len(alg_df))), label = 'PCA')
-		shift += 0.05
+		shift += 0.1
 		for total_eps in total_eps_list:
 			plt.errorbar(alg_df.index + shift, alg_df['Eps = %s' % str(total_eps)], \
 				yerr = alg_df[['Eps = %s 25' % str(total_eps), 'Eps = %s 75' % str(total_eps)]].to_numpy().T, label = 'Eps = %s' % str(total_eps))
-			shift += 0.05
+			shift += 0.1
 
 		plt.xlabel("Dimension")
-		plt.ylabel("Accuracy")
+		plt.ylabel("(Loss With Dim Reduction) / (Actual Loss)")
 		plt.legend(loc = "lower right")
 		plt.savefig('%s.jpg' % file)
 		plt.close()
