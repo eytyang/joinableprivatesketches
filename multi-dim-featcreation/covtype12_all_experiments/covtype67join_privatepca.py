@@ -93,20 +93,41 @@ if __name__ == "__main__":
 	f_names = f_train.columns
 
 	f_train = f_train[f_names]
+	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	f_train = f_train.loc[l_train.index]
+	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
-	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
+	# Bias the training and test sets
+	index6_train = l_train.index[l_train['Cover_Type'] == 6] 
+	subsample7_train = l_train[l_train['Cover_Type'] == 7].sample(n = int(len(l_train) / 5))
+	index7_train = subsample7_train.index
+	index_train = index6_train.union(index7_train)
+	f_train = f_train.loc[index_train].to_numpy()
+	l_train_ctrl = l_train.loc[index_train]
+	# l_train = l_train.to_frame()
 
-	index_train = f_train.index
-	f_train = f_train.to_numpy()
-	f_test = f_test.to_numpy()
+	index6_test = l_test.index[l_test['Cover_Type'] == 6] 
+	subsample7_test = l_test[l_test['Cover_Type'] == 7].sample(n = int(len(l_test) / 5))
+	index7_test = subsample7_test.index
+	index_test = index6_test.union(index7_test)
+	f_test = f_test.loc[index_test].to_numpy()
+	l_test = l_test.loc[index_test]
+
+	l_train_ctrl = l_train_ctrl.replace(6, -1)
+	l_train_ctrl = l_train_ctrl.replace(7, 1)
+	l_train = l_train.replace(6, -1)
+	l_train = l_train.replace(7, 1)
+	l_test = l_test.replace(6, -1)
+	l_test = l_test.replace(7, 1)
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['RandomForest', 'KNN']
+	algs = ['AdaBoost', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -119,7 +140,7 @@ if __name__ == "__main__":
 			loss_dict[alg]['Eps = %s' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 25' % str(total_eps)] = []
 			loss_dict[alg]['Eps = %s 75' % str(total_eps)] = []
-		loss_ctrl[alg] = get_loss(f_train, l_train, f_test, l_test, alg)
+		loss_ctrl[alg] = get_loss(f_train, l_train_ctrl, f_test, l_test, alg)
 		loss_dict[alg]['Original Features'] = []
 
 	print(loss_ctrl)
@@ -132,14 +153,14 @@ if __name__ == "__main__":
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
 			loss_dict[alg]['Dimension'].append(dim)
-			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train, f_test_pca, l_test, alg))
+			loss_dict[alg]['PCA'].append(get_loss(f_train_pca, l_train_ctrl, f_test_pca, l_test, alg))
 			loss_dict[alg]['Original Features'].append(loss_ctrl[alg])
 
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			eps_memb = total_eps / (dim + 1)
+			eps_val = total_eps - eps_memb
 			
 			for alg in algs:
 				trial_dict[alg] = []
@@ -170,7 +191,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype_pca_%s_smalleps_highdim_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67join_pca_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
