@@ -85,18 +85,14 @@ if __name__ == "__main__":
 	f_names = f_train.columns
 
 	f_train = f_train[f_names]
-	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	l_train = l_train[(l_train['Cover_Type'] == 1) | (l_train['Cover_Type'] == 2)]
 	f_train = f_train.loc[l_train.index]
-	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	l_test = l_test[(l_test['Cover_Type'] == 1) | (l_test['Cover_Type'] == 2)]
 	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(6, 0)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, 0)
-	l_test = l_test.replace(7, 1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
