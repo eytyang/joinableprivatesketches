@@ -75,7 +75,9 @@ def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001):
 	return X
 
 def get_sens_list(f_train):
-	f_train_abs = np.absolute(f_train)
+	f_train_centered = f_train - np.mean(f_train, axis = 0).reshape(-1, f_train.shape[1])
+	f_train_abs = np.absolute(f_train_centered)
+	
 	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 
 
 def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
@@ -93,18 +95,14 @@ if __name__ == "__main__":
 	f_names = f_train.columns
 
 	f_train = f_train[f_names]
-	l_train = l_train[(l_train['Cover_Type'] == 6) | (l_train['Cover_Type'] == 7)]
+	l_train = l_train[(l_train['Cover_Type'] == 1) | (l_train['Cover_Type'] == 2)]
 	f_train = f_train.loc[l_train.index]
-	l_test = l_test[(l_test['Cover_Type'] == 6) | (l_test['Cover_Type'] == 7)]
+	l_test = l_test[(l_test['Cover_Type'] == 1) | (l_test['Cover_Type'] == 2)]
 	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(6, 0)
-	l_train = l_train.replace(7, 1)
-	l_test = l_test.replace(6, 0)
-	l_test = l_test.replace(7, 1)
 
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
@@ -114,7 +112,7 @@ if __name__ == "__main__":
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest', 'KNN']
+	algs = ['AdaBoost', 'LogisticRegression', 'RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -178,7 +176,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67_pca_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype12_pca_centered_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
