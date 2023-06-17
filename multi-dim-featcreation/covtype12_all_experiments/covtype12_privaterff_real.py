@@ -103,13 +103,16 @@ if __name__ == "__main__":
 	f_test = f_test.to_numpy()
 
 	# Compute bandwidth
-	# pair_dists = sc.spatial.distance.pdist(f_train)
-	# bandwidth = np.median(pair_dists)
-	bandwidth = 1800
+	bandwidth_list = []
+	for i in range(10):
+		rand_rows = np.random.choice(f_train.shape[0], 10000)
+		pair_dists = sc.spatial.distance.pdist(f_train[rand_rows, :])
+		bandwidth_list.append(np.median(pair_dists))
+	bandwidth = sum(bandwidth_list) / 10
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression']
+	algs = ['AdaBoost', 'LogisticRegression', 'KNN', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
