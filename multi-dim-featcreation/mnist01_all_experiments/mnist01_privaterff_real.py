@@ -129,6 +129,9 @@ if __name__ == "__main__":
 =======
 	algs = ['AdaBoost', 'LogisticRegression', 'MultiLayerPerceptron']
 	# algs = ['KNN', 'RandomForest']
+<<<<<<< HEAD
+>>>>>>> b4670b0 (Run epilepsy PCA experiments)
+=======
 >>>>>>> b4670b0 (Run epilepsy PCA experiments)
 
 	trial_dict = {}
