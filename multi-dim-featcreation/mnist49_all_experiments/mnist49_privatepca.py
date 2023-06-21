@@ -78,7 +78,7 @@ def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001):
 def get_sens_list(f_train):
 	f_train_centered = f_train - np.mean(f_train, axis = 0).reshape(-1, f_train.shape[1])
 	f_train_abs = np.absolute(f_train_centered)
-	
+
 	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 
 
 def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 	print("l_train shape:", l_train.shape)
 	print("l_test shape:", l_test.shape)
 
-	sketch_dim = [10, 20, 30, 40, 50]
+	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
