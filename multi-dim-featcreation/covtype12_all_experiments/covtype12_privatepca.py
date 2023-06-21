@@ -111,8 +111,8 @@ if __name__ == "__main__":
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['AdaBoost', 'LogisticRegression', 'RandomForest', 'KNN']
+	total_eps_list = [2.5, 5.0, 7.5, 10.0, 12.5]
+	algs = ['RandomForest', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype12_pca_centered_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype12_pca_centered_higheps_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
