@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	bandwidth = 2300
 
 	sketch_dim = [5, 10, 15, 20, 25]
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	total_eps_list = [2.5, 5.0, 7.5, 10.0, 12.5]
 	algs = ['AdaBoost', 'KNN', 'RandomForest']
 
 	trial_dict = {}
@@ -177,7 +177,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype12_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype12_rffrealclip_largeeps_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
