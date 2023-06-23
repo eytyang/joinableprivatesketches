@@ -162,6 +162,12 @@ if __name__ == "__main__":
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
 
+				# Test clipping
+				perc05 = np.percentile(f_train_priv, 5, axis = 0 , keepdims = True)
+				perc95 = np.percentile(f_train_priv, 95, axis = 0 , keepdims = True)
+				f_train_priv = np.clip(f_train_priv, a_min = perc05, a_max = perc95)
+				f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
+
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
@@ -182,7 +188,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'epilepsy_pca_centered_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'epilepsy_pca_centeredclip90_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
