@@ -124,8 +124,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
-	algs = ['MultiLayerPerceptron']
-	# algs = ['AdaBoost', 'LogisticRegression', 'MultiLayerPerceptron']
+	algs = ['AdaBoost', 'LogisticRegression', 'MultiLayerPerceptron']
 
 	trial_dict = {}
 	loss_dict = {}
