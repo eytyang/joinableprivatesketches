@@ -82,27 +82,22 @@ def get_sens_list(f_train):
 if __name__ == "__main__":
 	num_trials = 25
 
-	file = '../../data/epileptic.csv'
-	l_name = ['y']
+	file = '../../data/covtype.csv'
+	l_name = ['Cover_Type']
 	f_train, l_train, f_test, l_test = prep_data(file, l_name)
-	f_names = list(f_train.columns)
-	f_names.remove('Unnamed: 0')
-	index_train = f_train.index
+	f_names = f_train.columns
 
+	f_train = f_train[f_names]
+	l_train = l_train[(l_train['Cover_Type'] == 1) | (l_train['Cover_Type'] == 2)]
+	f_train = f_train.loc[l_train.index]
+	l_test = l_test[(l_test['Cover_Type'] == 1) | (l_test['Cover_Type'] == 2)]
+	f_test = f_test.loc[l_test.index]
 	print(l_train.value_counts())
 	print(l_test.value_counts())
 	
-	f_train, l_train = f_train[f_names], l_train[l_name].loc[f_train.index]
 	f_test, l_test = f_test[f_names], l_test[l_name].loc[f_test.index]
-	l_train = l_train.replace(2, -1)
-	l_train = l_train.replace(3, -1)
-	l_train = l_train.replace(4, -1)
-	l_train = l_train.replace(5, -1)
-	l_test = l_test.replace(2, -1)
-	l_test = l_test.replace(3, -1)
-	l_test = l_test.replace(4, -1)
-	l_test = l_test.replace(5, -1)
 
+	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 
