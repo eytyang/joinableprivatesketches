@@ -2,20 +2,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-algs = ['MultiLayerPerceptron']
+algs = ['KNN']
 num_trials = 25
 total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
 for alg in algs:
-	alg_df = pd.read_csv('mnist49_rffrealclip_%s_trials=%i.csv' % (alg.lower(), num_trials))
+	alg_df = pd.read_csv('epileptic_rffrealclip_%s_trials=%i.csv' % (alg.lower(), num_trials))
 	alg_df = alg_df.set_index('Dimension')
 	print(alg_df)
 
-	file = 'mnist49_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+	file = 'epileptic_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 	alg_df.to_csv('%s.csv' % file)
 	shift = -0.25
 
 	# Edit!
-	plt.ylim((0.45, 1.05))
+	plt.ylim((0.75, 1.05))
 	plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 		yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features', linestyle = 'dashed')
 	# plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
@@ -32,7 +32,7 @@ for alg in algs:
 
 	plt.xlabel("Reduced Dimension")
 	plt.ylabel("Accuracy")
-	plt.title('Accuracy of Two Layer NN on MNIST (4 vs. 9)')
-	plt.legend(loc = "center right")
+	plt.title('Accuracy of KNN on Seizures Dataset (RFF + Clip)')
+	plt.legend(loc = "upper right")
 	plt.savefig('%s.jpg' % file)
 	plt.close()

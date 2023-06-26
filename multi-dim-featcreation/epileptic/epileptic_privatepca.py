@@ -171,7 +171,6 @@ if __name__ == "__main__":
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
 				# Test clipping
-				
 				dp_join.features = np.clip(dp_join.features, a_min = perc05, a_max = perc95)
 				f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
 
