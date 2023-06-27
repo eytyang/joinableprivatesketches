@@ -54,7 +54,7 @@ class DP_Join:
 			val = RealValued_Sketch(self.eps_val, self.sens_list, df_dp.index, self.num_buckets)
 			noise = val.get_noise(df_private.columns)
 
-			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else 0)
+			df_dp = df_dp.applymap(lambda x: x if not np.isnan(x) else 0.0)
 			self.features = df_dp[df_private.columns].to_numpy() + noise
 
 			if data_type == 'Real Clip':

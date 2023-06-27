@@ -170,11 +170,14 @@ if __name__ == "__main__":
 				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
+				mean_train = np.mean(f_train_priv, axis = 0, keepdims = True)
+				f_train_priv = f_train_priv - mean_train
 
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
+				dp_join.features = dp_join.features + mean_train
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
