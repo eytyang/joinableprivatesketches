@@ -60,6 +60,9 @@ def get_random_orthonormal(vec_dim, num_vecs):
 	return Q
 
 def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001): 
+	mat_mean = np.mean(mat, axis = 0, keepdims = True)
+	mat = mat - mat_mean
+
 	cov = np.matmul(mat.T, mat)
 	X = get_random_orthonormal(cov.shape[1], dim)
 	if eps is not None:
@@ -160,16 +163,16 @@ if __name__ == "__main__":
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
 
-				perc05 = np.percentile(f_train_priv, 5, axis = 0 , keepdims = True)
-				perc95 = np.percentile(f_train_priv, 95, axis = 0 , keepdims = True)
-				f_train_priv = np.clip(f_train_priv, a_min = perc05, a_max = perc95)
+				# perc05 = np.percentile(f_train_priv, 5, axis = 0 , keepdims = True)
+				# perc95 = np.percentile(f_train_priv, 95, axis = 0 , keepdims = True)
+				# f_train_priv = np.clip(f_train_priv, a_min = perc05, a_max = perc95)
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
-				dp_join.features = np.clip(dp_join.features, a_min = perc05, a_max = perc95)
-				f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
+				# dp_join.features = np.clip(dp_join.features, a_min = perc05, a_max = perc95)
+				# f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
