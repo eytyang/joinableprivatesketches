@@ -112,8 +112,6 @@ if __name__ == "__main__":
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
 	f_mean = np.mean(f_train, axis = 0, keepdims = True).reshape((-1, f_train.shape[1]))
-	print(f_mean)
-	print(f_mean.shape)
 	f_train = f_train - f_mean
 	f_test = f_test - f_mean
 
