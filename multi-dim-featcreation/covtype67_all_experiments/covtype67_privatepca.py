@@ -60,9 +60,6 @@ def get_random_orthonormal(vec_dim, num_vecs):
 	return Q
 
 def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001): 
-	mat_mean = np.mean(mat, axis = 0, keepdims = True)
-	mat = mat - mat_mean
-
 	cov = np.matmul(mat.T, mat)
 	X = get_random_orthonormal(cov.shape[1], dim)
 	if eps is not None:
@@ -114,6 +111,9 @@ if __name__ == "__main__":
 	index_train = f_train.index
 	f_train = f_train.to_numpy()
 	f_test = f_test.to_numpy()
+	f_mean = np.mean(f_train, axis = 0, keepdims = True)
+	f_train = f_train - f_mean
+	f_test = f_train - f_mean
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
