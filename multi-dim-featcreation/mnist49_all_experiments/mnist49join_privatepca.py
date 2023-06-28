@@ -138,6 +138,10 @@ if __name__ == "__main__":
 	l_test = l_test.replace(4, -1)
 	l_test = l_test.replace(9, 1)
 
+	f_mean = np.mean(f_train, axis = 0, keepdims = True).reshape((-1, f_train.shape[1]))
+	f_train = f_train - f_mean
+	f_test = f_test - f_mean
+
 	# Print the shape of the matrices
 	print("f_train shape:", f_train.shape)
 	print("f_test shape:", f_test.shape)
