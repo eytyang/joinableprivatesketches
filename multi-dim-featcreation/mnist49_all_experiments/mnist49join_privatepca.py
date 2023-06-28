@@ -117,7 +117,7 @@ if __name__ == "__main__":
 	
 	# Bias the training and test sets
 	index4_train = all_train.index[all_train['label'] == 4] 
-	subsample9_train = all_train[all_train['label'] == 9].sample(n = int(len(all_train) / 5))
+	subsample9_train = all_train[all_train['label'] == 9].sample(n = int(all_train[all_train['label'] == 9] / 4))
 	index9_train = subsample9_train.index
 	index_train = index4_train.union(index9_train)
 	f_train = all_train.loc[index_train].drop('label', axis = 1).to_numpy()
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 	l_train = all_train['label'].to_frame()
 
 	index4_test = all_test.index[all_test['label'] == 4] 
-	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(len(all_test) / 5))
+	subsample9_test = all_test[all_test['label'] == 9].sample(n = int(all_test[all_test['label'] == 9] / 4))
 	index9_test = subsample9_test.index
 	index_test = index4_test.union(index9_test)
 	f_test = all_test.loc[index_test].drop('label', axis = 1).to_numpy()
