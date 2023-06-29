@@ -115,10 +115,9 @@ if __name__ == "__main__":
 	l_test = l_test.loc[index_test]
 
 	# Compute bandwidth
-	pair_dists = sc.spatial.distance.pdist(f_train)
-	bandwidth = np.median(pair_dists)
-	print(bandwidth)
-	# bandwidth = 1500
+	# pair_dists = sc.spatial.distance.pdist(f_train)
+	# bandwidth = np.median(pair_dists)
+	# bandwidth = 3600
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -191,7 +190,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype67join_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'epilepticjoin_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
