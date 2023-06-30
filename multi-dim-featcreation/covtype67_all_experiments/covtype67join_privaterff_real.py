@@ -165,8 +165,8 @@ if __name__ == "__main__":
 			sens_list = [2 ** (0.5) for i in range(dim)]
 			for total_eps in total_eps_list:
 				print('Total Eps = %s' % str(total_eps))
-				eps_memb = total_eps / (dim + 1)
-				eps_val = total_eps # - eps_memb
+				eps_memb = 1000 # total_eps / (dim + 1)
+				eps_val = total_eps - total_eps / (dim + 1)
 
 				dp_join = DP_Join(eps_memb, eps_val, sens_list) 
 				dp_join.join(l_train, f_train_rff, 'Real Clip') 

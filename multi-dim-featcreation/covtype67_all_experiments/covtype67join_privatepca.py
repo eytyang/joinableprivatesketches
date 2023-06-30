@@ -123,10 +123,6 @@ if __name__ == "__main__":
 	l_test = l_test.replace(6, -1)
 	l_test = l_test.replace(7, 1)
 
-	f_mean = np.mean(f_train, axis = 0, keepdims = True).reshape((-1, f_train.shape[1]))
-	f_train = f_train - f_mean
-	f_test = f_test - f_mean
-
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 1000 # 0.1
@@ -163,8 +159,8 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_memb = total_eps / (dim + 1)
-			eps_val = total_eps - eps_memb
+			eps_memb = 1000 #total_eps / (dim + 1)
+			eps_val = total_eps - total_eps / (dim + 1)
 			
 			for alg in algs:
 				trial_dict[alg] = []
