@@ -123,9 +123,7 @@ if __name__ == "__main__":
 	l_test = l_test.loc[index_test]
 
 	f_mean = np.mean(f_train, axis = 0, keepdims = True).reshape((-1, f_train.shape[1]))
-	print(f_train)
 	f_train = f_train - f_mean
-	print(f_train)
 	f_test = f_test - f_mean
 
 	sketch_dim = [5, 10, 15, 20, 25]
