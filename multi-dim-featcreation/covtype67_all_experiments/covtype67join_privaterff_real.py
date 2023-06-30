@@ -192,7 +192,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'covtype67join_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67joinperfectmemb_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
