@@ -6,7 +6,7 @@ algs = ['RandomForest']
 num_trials = 25
 total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
 for alg in algs:
-	file = 'covtype67join_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
+	file = 'covtype67joinperfectmemb_rffrealclip_%s_trials=%i' % (alg.lower(), num_trials)
 	alg_df = pd.read_csv('%s.csv' % file)
 	alg_df = alg_df.set_index('Dimension')
 	print(alg_df)
@@ -19,7 +19,7 @@ for alg in algs:
 	# plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
 	#  	yerr = np.zeros(shape = (2, len(alg_df))), label = 'PCA (No Privacy)')
 	plt.errorbar(alg_df.index + shift, alg_df['RFF Real'], \
-	 	yerr = alg_df[['RFF Real 25', 'RFF Real 75']].to_numpy().T, label = 'Real RFFs (No Privacy)')
+	  	yerr = alg_df[['RFF Real 25', 'RFF Real 75']].to_numpy().T, label = 'Real RFFs (No Privacy)')
 	shift += 0.05
 	for total_eps in total_eps_list:
 		if total_eps == 2.0 or total_eps == 4.0:
@@ -30,7 +30,7 @@ for alg in algs:
 
 	plt.xlabel("# RFFs")
 	plt.ylabel("Accuracy")
-	plt.title('Accuracy of Random Forest on Forest Cover 6/7 (RFFs)')
-	plt.legend(loc = "upper right")
+	plt.title('Accuracy of R.F. on Forest Cover 6/7 (RFFs + Memb Known)')
+	plt.legend(loc = "lower right")
 	plt.savefig('%s.jpg' % file)
 	plt.close()
