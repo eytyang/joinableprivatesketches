@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 1000 # 0.1
+	eps_pca = 0.01
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
 	algs = ['AdaBoost', 'RandomForest', 'KNN']
 
@@ -163,16 +163,16 @@ if __name__ == "__main__":
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
 
-				perc05 = np.percentile(f_train_priv, 5, axis = 0 , keepdims = True)
-				perc95 = np.percentile(f_train_priv, 95, axis = 0 , keepdims = True)
-				f_train_priv = np.clip(f_train_priv, a_min = perc05, a_max = perc95)
+				# perc05 = np.percentile(f_train_priv, 5, axis = 0 , keepdims = True)
+				# perc95 = np.percentile(f_train_priv, 95, axis = 0 , keepdims = True)
+				# f_train_priv = np.clip(f_train_priv, a_min = perc05, a_max = perc95)
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
-				dp_join.features = np.clip(dp_join.features, a_min = perc05, a_max = perc95)
-				f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
+				# dp_join.features = np.clip(dp_join.features, a_min = perc05, a_max = perc95)
+				# f_test_priv = np.clip(f_test_priv, a_min = perc05, a_max = perc95)
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67_pca_centeredclip_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67_pca0.01_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
