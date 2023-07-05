@@ -169,7 +169,7 @@ if __name__ == "__main__":
 				eps_val = total_eps # - eps_memb
 
 				dp_join = DP_Join(eps_memb, eps_val, sens_list) 
-				dp_join.join(l_train, f_train_rff, 'Real Clip') 
+				dp_join.join(l_train, f_train_rff, 'Real') 
 
 				for alg in algs:
 					trial_dict[alg]['Eps = %s' % total_eps].append(get_loss(dp_join.features, dp_join.labels, f_test_rff, l_test, alg))
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'mnist49_rffrealclip_smalldim_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist49_rffreal_smalldim_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
