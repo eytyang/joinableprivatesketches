@@ -160,7 +160,7 @@ if __name__ == "__main__":
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
 				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
-				print(pca - priv_pca)
+				# print(pca - priv_pca)
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
 
