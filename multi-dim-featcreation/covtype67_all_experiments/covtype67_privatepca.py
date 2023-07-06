@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 0.01
+	eps_pca = 0.1
 	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
 	algs = ['AdaBoost', 'RandomForest', 'KNN']
 
@@ -160,6 +160,7 @@ if __name__ == "__main__":
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
 				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				print(pca - priv_pca)
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
 
@@ -189,7 +190,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67_pca0.01_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67_pca0.1_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
