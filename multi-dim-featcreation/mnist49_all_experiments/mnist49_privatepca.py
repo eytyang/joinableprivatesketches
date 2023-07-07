@@ -153,7 +153,7 @@ if __name__ == "__main__":
 	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
 	eps_pca = 0.1
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['LogisticRegression', 'MultiLayerPerceptron']
 
 	trial_dict = {}
