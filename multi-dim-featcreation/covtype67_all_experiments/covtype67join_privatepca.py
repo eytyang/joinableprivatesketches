@@ -74,6 +74,26 @@ def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001):
 		X, R = np.linalg.qr(Y)
 	return X
 
+def priv_pca_laplace(mat, num_iters, dim, eps = None):
+	if eps is None:
+		U, S, VT = np.linalg.svd(np.matmul(mat.T, mat))
+		return None, None, U[:, :dim]
+	sens = np.array(get_sens_list(mat)) + 0.001
+	sens_matrix = np.tile(sens, (mat.shape[0], 1))
+	mat = (np.divide(mat, 2 * sens_matrix) + 1.0) / 2
+
+	laplace = np.random.laplace(scale = (3 * mat.shape[1] ** 2) / (mat.shape[0] * eps), size = (mat.shape[1], mat.shape[1]))
+	
+	for i in range(mat.shape[1]):
+		for j in range(i + 1, mat.shape[1]):
+			laplace[i][j] = laplace[j][i]
+	for i in range(mat.shape[1]):
+		laplace[i][i] *= 2
+
+	cov = (1.0 / mat.shape[0]) * np.matmul(mat.T, mat) + laplace
+	U, S, VT = np.linalg.svd(cov)
+	return sens, np.mean(mat, axis = 0).reshape(-1, mat.shape[1]), U[:, :dim]
+
 def get_sens_list(f_train):
 	f_train_abs = np.absolute(f_train)
 	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 
@@ -123,10 +143,9 @@ if __name__ == "__main__":
 	l_test = l_test.replace(6, -1)
 	l_test = l_test.replace(7, 1)
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 0.1 # 1000 
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['AdaBoost', 'RandomForest', 'KNN']
 
 	trial_dict = {}
@@ -148,7 +167,7 @@ if __name__ == "__main__":
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 
-		pca = priv_power_method(f_train, num_iters, dim)
+		sens, means, pca = priv_power_method(f_train, num_iters, dim)
 		f_train_pca = np.matmul(f_train, pca)
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
@@ -158,26 +177,26 @@ if __name__ == "__main__":
 
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
-			# eps = total_eps - eps_pca
+			eps_pca = total_eps / (dim + 2)
 			eps_memb = 1000 #total_eps / (dim + 1)
-			eps_val = total_eps - total_eps / (dim + 1)
+			eps_val = total_eps - eps_pca - total_eps / (dim + 2)
 			
 			for alg in algs:
 				trial_dict[alg] = []
 			
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
-				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
-				f_train_priv = np.matmul(f_train, priv_pca)
-				f_test_priv = np.matmul(f_test, priv_pca)
-				mean_train = np.mean(f_train_priv, axis = 0, keepdims = True)
-				f_train_priv = f_train_priv - mean_train
+				sens, means, priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				f_train_priv = np.matmul(0.5 * (np.divide(f_train, np.tile(sens, (f_train.shape[0], 1))) + 1.0) - means, priv_pca)
+				f_test_priv = np.matmul(0.5 * (np.divide(f_test, np.tile(sens, (f_test.shape[0], 1))) + 1.0) - means, priv_pca)
+				# mean_train = np.mean(f_train_priv, axis = 0, keepdims = True)
+				# f_train_priv = f_train_priv - mean_train
 
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
 				dp_join = DP_Join(eps_memb, eps_val, sens_list, 'Real')
 				dp_join.join(l_train, f_train_priv)
-				dp_join.features = dp_join.features + mean_train
+				# dp_join.features = dp_join.features + mean_train
 
 				for alg in algs:
 					trial_dict[alg].append(get_loss(dp_join.features, dp_join.labels, f_test_priv, l_test, alg))
@@ -194,7 +213,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67joinperfectmemb_pca0.1_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67joinperfectmemb_pcalaplace_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))

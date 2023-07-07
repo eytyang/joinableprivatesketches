@@ -168,10 +168,9 @@ if __name__ == "__main__":
 	print("l_train shape:", l_train.shape)
 	print("l_test shape:", l_test.shape)
 
-	sketch_dim = [5, 10, 15, 20, 25]
+	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 0.1
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['LogisticRegression', 'AdaBoost', 'RandomForest', 'MultiLayerPerceptron', 'KNN']
 
 	trial_dict = {}
@@ -193,7 +192,7 @@ if __name__ == "__main__":
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 
-		pca = priv_power_method(f_train, num_iters, dim)
+		sens, means, pca = priv_power_method(f_train, num_iters, dim)
 		f_train_pca = np.matmul(f_train, pca)
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
@@ -203,18 +202,18 @@ if __name__ == "__main__":
 
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
-			# eps = total_eps - eps_pca
+			eps_pca = total_eps / (dim + 2)
 			eps_memb = 1000 # total_eps / (dim + 1)
-			eps_val = total_eps - total_eps / (dim + 1)
+			eps_val = total_eps - eps_pca - total_eps / (dim + 2)
 			
 			for alg in algs:
 				trial_dict[alg] = []
 			
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
-				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
-				f_train_priv = np.matmul(f_train, priv_pca)
-				f_test_priv = np.matmul(f_test, priv_pca)
+				sens, means, priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				f_train_priv = np.matmul(0.5 * (np.divide(f_train, np.tile(sens, (f_train.shape[0], 1))) + 1.0) - means, priv_pca)
+				f_test_priv = np.matmul(0.5 * (np.divide(f_test, np.tile(sens, (f_test.shape[0], 1))) + 1.0) - means, priv_pca)
 
 				sens_list = get_sens_list(f_train_priv)
 				f_train_priv = pd.DataFrame(data = f_train_priv, index = index_train, columns = ["Comp %i" % (i + 1) for i in range(dim)])
@@ -236,7 +235,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'mnist49joinperfectmemb_pca0.1_smalleps_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist49joinperfectmemb_pcalaplace_smalleps_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))

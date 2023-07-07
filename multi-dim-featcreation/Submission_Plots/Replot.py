@@ -14,6 +14,7 @@ for alg in algs:
 	shift = -0.25
 	# Edit!
 	plt.ylim((0.45, 1.05))
+	plt.xlim((0, 25))
 	plt.errorbar(alg_df.index + shift, alg_df['Original Features'], \
 		yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features', linestyle = 'dashed')
 	plt.errorbar(alg_df.index + shift, alg_df['PCA'], \

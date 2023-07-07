@@ -139,9 +139,8 @@ if __name__ == "__main__":
 
 	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 0.1
-	total_eps_list = [2.5, 7.5, 12.5] # [1.0, 3.0, 5.0]
-	algs = ['AdaBoost', 'RandomForest']
+	total_eps_list = [1.0, 3.0, 5.0]
+	algs = ['KNN']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -172,9 +171,9 @@ if __name__ == "__main__":
 
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
-			# eps = total_eps - eps_pca
+			eps_pca = total_eps / (dim + 1)
 			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			eps_val = total_eps - eps_pca
 			
 			for alg in algs:
 				trial_dict[alg] = []
@@ -212,7 +211,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'epileptic_pca0.1_smalldim_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'epileptic_pcalaplace_smalldim_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))

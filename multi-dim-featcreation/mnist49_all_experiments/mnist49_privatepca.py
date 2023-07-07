@@ -185,9 +185,9 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
-			eps_pca = total_eps / (dim + 1)
-			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps - eps_pca # - eps_memb
+			eps_pca = total_eps / (dim + 2)
+			eps_memb = 1000 # eps / (dim + 2)
+			eps_val = total_eps - eps_pca - total_eps / (dim + 2)
 			
 			for alg in algs:
 				trial_dict[alg] = []
