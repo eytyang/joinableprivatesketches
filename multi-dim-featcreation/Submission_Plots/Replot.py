@@ -15,25 +15,25 @@ dataset_to_string = {
 	'epileptic': 'Epilepsy Dataset'
 }
 
-dataset = 'epileptic'
-algs = ['AdaBoost', 'RandomForest', 'KNN']
+dataset = 'covtype67'
+algs = ['RandomForest'] # ['AdaBoost', 'RandomForest', 'KNN']
 # algs = ['LogisticRegression', 'MultiLayerPerceptron']
 num_trials = 25
 total_eps_list = [1.0, 3.0, 5.0]
 for alg in algs:
-	file = '%sjoin_rffrealclip_%s_trials=%i' % (dataset, alg.lower(), num_trials)
+	file = '%s_rffrealclip_%s_trials=%i_copy' % (dataset, alg.lower(), num_trials)
 	alg_df = pd.read_csv('%s.csv' % file)
 	alg_df = alg_df.set_index('Dimension')
 	print(alg_df)
 
 	shift = -0.25
 	# Edit!
-	plt.ylim((0.25, 1.05))
+	plt.ylim((0.45, 1.05))
 	plt.xlim((0, 25))
 	plt.errorbar(np.array([1, 10, 15, 20, 25]) + shift, alg_df['Original Features'], \
 		yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features', linestyle = 'dashed')
 	# plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
-	# 	yerr = np.zeros(shape = (2, len(alg_df))), label = 'PCA (No Privacy)')
+	# 	yerr = np.zeros(shape = (2, len(alg_df))), label = 'Reduced Feats. (No Privacy)')
 	plt.errorbar(alg_df.index + shift, alg_df['RFF Real'], \
 	  	yerr = alg_df[['RFF Real 25', 'RFF Real 75']].to_numpy().T, label = 'Real RFFs (No Privacy)')
 	shift += 0.05
@@ -44,7 +44,7 @@ for alg in algs:
 
 	plt.xlabel("# RFFs")
 	plt.ylabel("Accuracy")
-	plt.title('Accuracy of %s on %s (RFFs + Memb Unknown)' % (algs_to_string[alg], dataset_to_string[dataset]))
-	plt.legend(loc = "upper right")
+	# plt.title('Accuracy of %s on %s (PCA + Memb Unknown)' % (algs_to_string[alg], dataset_to_string[dataset]))
+	# plt.legend(loc = "upper right")
 	plt.savefig('%s.jpg' % file)
 	plt.close()
