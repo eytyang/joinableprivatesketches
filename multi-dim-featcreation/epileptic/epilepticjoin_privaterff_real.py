@@ -119,8 +119,8 @@ if __name__ == "__main__":
 	# bandwidth = np.median(pair_dists)
 	bandwidth = 3600
 
-	sketch_dim = [5, 10, 15, 20, 25]
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	sketch_dim = [1]
+	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['AdaBoost', 'KNN', 'RandomForest']
 
 	trial_dict = {}

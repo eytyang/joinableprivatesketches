@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
 	sketch_dim = [1]
 	total_eps_list = [1.0, 3.0, 5.0]
-	algs = ['RandomForest']
+	algs = ['AdaBoost', 'KNN']
 
 	trial_dict = {}
 	loss_dict = {}
