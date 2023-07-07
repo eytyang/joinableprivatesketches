@@ -82,8 +82,10 @@ def priv_pca_laplace(mat, num_iters, dim, eps = None):
 	sens = np.array(get_sens_list(mat)) + 0.001
 	sens_matrix = np.tile(sens, (mat.shape[0], 1))
 	mat = (np.divide(mat, 2 * sens_matrix) + 1.0) / 2
+	means = np.mean(mat, axis = 0).reshape(1, mat.shape[1]) + np.random.laplace(scale = 2.0 / (mat.shape[0] * eps), size = (1, mat.shape[1]))
+	mat = mat - means
 
-	laplace = np.random.laplace(scale = (3 * mat.shape[1] ** 2) / (mat.shape[0] * eps), size = (mat.shape[1], mat.shape[1]))
+	laplace = np.random.laplace(scale = (6.0 * mat.shape[1] ** 2) / (mat.shape[0] * eps), size = (mat.shape[1], mat.shape[1]))
 	
 	for i in range(mat.shape[1]):
 		for j in range(i + 1, mat.shape[1]):
@@ -93,7 +95,7 @@ def priv_pca_laplace(mat, num_iters, dim, eps = None):
 
 	cov = (1.0 / mat.shape[0]) * np.matmul(mat.T, mat) + laplace
 	U, S, VT = np.linalg.svd(cov)
-	return sens, np.mean(mat, axis = 0).reshape(-1, mat.shape[1]), U[:, :dim]
+	return sens, means, U[:, :dim]
 
 def get_sens_list(f_train):
 	f_train_centered = f_train - np.mean(f_train, axis = 0).reshape(-1, f_train.shape[1])
