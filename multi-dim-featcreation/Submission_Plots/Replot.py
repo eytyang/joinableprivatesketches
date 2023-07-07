@@ -17,7 +17,7 @@ dataset_to_string = {
 
 dataset = 'covtype67'
 algs = ['RandomForest'] # ['AdaBoost', 'RandomForest', 'KNN']
-# algs = ['LogisticRegression', 'MultiLayerPerceptron']
+# algs = ['MultiLayerPerceptron'] # ['LogisticRegression', 'MultiLayerPerceptron']
 num_trials = 25
 total_eps_list = [1.0, 3.0, 5.0]
 for alg in algs:
@@ -30,7 +30,7 @@ for alg in algs:
 	# Edit!
 	plt.ylim((0.45, 1.05))
 	plt.xlim((0, 25))
-	plt.errorbar(np.array([1, 10, 15, 20, 25]) + shift, alg_df['Original Features'], \
+	plt.errorbar(np.array([1, 5, 10, 15, 20, 25]) + shift, alg_df['Original Features'], \
 		yerr = np.zeros(shape = (2, len(alg_df))), label = 'Original Features', linestyle = 'dashed')
 	# plt.errorbar(alg_df.index + shift, alg_df['PCA'], \
 	# 	yerr = np.zeros(shape = (2, len(alg_df))), label = 'Reduced Feats. (No Privacy)')
@@ -44,7 +44,7 @@ for alg in algs:
 
 	plt.xlabel("# RFFs")
 	plt.ylabel("Accuracy")
-	# plt.title('Accuracy of %s on %s (PCA + Memb Unknown)' % (algs_to_string[alg], dataset_to_string[dataset]))
+	# plt.title('Accuracy of %s on %s (RFFs)' % (algs_to_string[alg], dataset_to_string[dataset]))
 	# plt.legend(loc = "upper right")
 	plt.savefig('%s.jpg' % file)
 	plt.close()
