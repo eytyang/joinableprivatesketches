@@ -141,8 +141,8 @@ if __name__ == "__main__":
 	# bandwidth = np.median(pair_dists)
 	bandwidth = 10
 
-	sketch_dim = [5, 10, 15, 20, 25]
-	total_eps_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+	sketch_dim = [1]
+	total_eps_list = [1.0, 3.0, 5.0]
 	# algs = ['KNN', 'RandomForest']
 	algs = ['LogisticRegression', 'MultiLayerPerceptron']
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'mnist49joinperfectmemb_rffrealclip_smalleps_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'mnist49joinperfectmemb_rffrealclip_dim1_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))

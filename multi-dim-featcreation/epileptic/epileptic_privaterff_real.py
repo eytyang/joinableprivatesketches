@@ -108,9 +108,9 @@ if __name__ == "__main__":
 	# bandwidth = np.median(pair_dists)
 	bandwidth = 1400
 
-	sketch_dim = [5, 10, 15, 20, 25]
-	total_eps_list = [2.5, 5.0, 7.5, 10.0, 12.5]
-	algs = ['AdaBoost', 'RandomForest', 'KNN', 'LogisticRegression']
+	sketch_dim = [1]
+	total_eps_list = [2.5, 7.5, 12.5]
+	algs = ['AdaBoost', 'RandomForest']
 
 	trial_dict = {}
 	loss_dict = {}
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 		alg_df = alg_df 
 		print(alg_df)
 
-		file = 'epileptic_rffrealclip_largeeps_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'epileptic_rffrealclip_dim1_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
