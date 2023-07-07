@@ -74,6 +74,18 @@ def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001):
 		X, R = np.linalg.qr(Y)
 	return X
 
+def priv_pca_laplace(mat, num_iters, dim, eps = None):
+	if eps is None:
+		U, S, VT = np.linalg.svd(np.matmul(mat.T, mat))
+		return U[:, :dim]
+	sens = get_sens_list(mat)
+	sens_matrix = np.tile(sens, (mat.shape[0], 1))
+	laplace = np.random.laplace(scale = mat.shape[1] / eps, size = (mat.shape[0], mat.shape[1]))
+	noise = np.multiply(sens_matrix, laplace)
+	mat = mat + noise
+	U, S, VT = np.linalg.svd(np.matmul(mat.T, mat))
+	return U[:, :dim]
+
 def get_sens_list(f_train):
 	f_train_centered = f_train - np.mean(f_train, axis = 0).reshape(-1, f_train.shape[1])
 	f_train_abs = np.absolute(f_train_centered)
@@ -140,7 +152,8 @@ if __name__ == "__main__":
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 
-		pca = priv_power_method(f_train, num_iters, dim)
+		pca = priv_pca_laplace(f_train, num_iters, dim)
+		print(pca.shape)
 		f_train_pca = np.matmul(f_train, pca)
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
@@ -159,7 +172,7 @@ if __name__ == "__main__":
 			
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
-				priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				priv_pca = priv_pca_laplace(f_train, num_iters, dim, eps_pca)
 				# print(pca - priv_pca)
 				f_train_priv = np.matmul(f_train, priv_pca)
 				f_test_priv = np.matmul(f_test, priv_pca)
@@ -190,7 +203,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67_pca0.1_smalleps_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67_pca0.1laplace_smalleps_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
