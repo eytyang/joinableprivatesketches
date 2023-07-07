@@ -152,7 +152,7 @@ if __name__ == "__main__":
 	print("l_train shape:", l_train.shape)
 	print("l_test shape:", l_test.shape)
 
-	sketch_dim = [1]
+	sketch_dim = [1, 2, 3]
 	num_iters = 50
 	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['LogisticRegression', 'MultiLayerPerceptron']
