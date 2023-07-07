@@ -141,8 +141,8 @@ if __name__ == "__main__":
 
 	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
-	total_eps_list = [1.0, 3.0, 5.0]
-	algs = ['KNN']
+	total_eps_list = [2.5, 7.5, 12.5] # [1.0, 3.0, 5.0]
+	algs = ['RandomForest', 'AdaBoost']
 
 	trial_dict = {}
 	loss_dict = {}
