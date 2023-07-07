@@ -194,7 +194,7 @@ if __name__ == "__main__":
 			
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
-				priv_pca = priv_pca_laplace(f_train, num_iters, dim, eps_pca)
+				sens, means, priv_pca = priv_pca_laplace(f_train, num_iters, dim, eps_pca)
 				f_train_priv = np.matmul(0.5 * (np.divide(f_train, np.tile(sens, (f_train.shape[0], 1))) + 1.0) - means, priv_pca)
 				f_test_priv = np.matmul(0.5 * (np.divide(f_test, np.tile(sens, (f_test.shape[0], 1))) + 1.0) - means, priv_pca)
 

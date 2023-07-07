@@ -107,7 +107,7 @@ def get_loss(f_train, l_train, f_test, l_test, alg = 'Logistic Regression'):
 	return metrics.accuracy_score(l_test.to_numpy().reshape(l_test.size), pred) 
 
 if __name__ == "__main__":
-	num_trials = 11
+	num_trials = 25
 
 	file = '../../data/covtype.csv'
 	l_name = ['Cover_Type']
@@ -135,7 +135,7 @@ if __name__ == "__main__":
 	f_train = f_train - f_mean
 	f_test = f_test - f_mean
 
-	sketch_dim = [1, 5, 10]
+	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
 	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['AdaBoost', 'RandomForest', 'KNN']
