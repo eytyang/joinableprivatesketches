@@ -75,6 +75,26 @@ def priv_power_method(mat, num_iters, dim, eps = None, delta = 0.0001):
 		X, R = np.linalg.qr(Y)
 	return X
 
+def priv_pca_laplace(mat, num_iters, dim, eps = None):
+	if eps is None:
+		U, S, VT = np.linalg.svd(np.matmul(mat.T, mat))
+		return None, None, U[:, :dim]
+	sens = np.array(get_sens_list(mat)) + 0.001
+	sens_matrix = np.tile(sens, (mat.shape[0], 1))
+	mat = (np.divide(mat, 2 * sens_matrix) + 1.0) / 2
+
+	laplace = np.random.laplace(scale = (3 * mat.shape[1] ** 2) / (mat.shape[0] * eps), size = (mat.shape[1], mat.shape[1]))
+	
+	for i in range(mat.shape[1]):
+		for j in range(i + 1, mat.shape[1]):
+			laplace[i][j] = laplace[j][i]
+	for i in range(mat.shape[1]):
+		laplace[i][i] *= 2
+
+	cov = (1.0 / mat.shape[0]) * np.matmul(mat.T, mat) + laplace
+	U, S, VT = np.linalg.svd(cov)
+	return sens, np.mean(mat, axis = 0).reshape(-1, mat.shape[1]), U[:, :dim]
+
 def get_sens_list(f_train):
 	f_train_abs = np.absolute(f_train)
 	return [f_train_abs[:, i].max() for i in range(f_train.shape[1])] 

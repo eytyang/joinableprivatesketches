@@ -152,7 +152,6 @@ if __name__ == "__main__":
 
 	sketch_dim = [1, 5, 10, 15, 20, 25]
 	num_iters = 50
-	eps_pca = 0.1
 	total_eps_list = [1.0, 3.0, 5.0]
 	algs = ['LogisticRegression', 'MultiLayerPerceptron']
 
@@ -186,8 +185,9 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			# eps = total_eps - eps_pca
+			eps_pca = total_eps / (dim + 1)
 			eps_memb = 1000 # eps / (dim + 1)
-			eps_val = total_eps # - eps_memb
+			eps_val = total_eps - eps_pca # - eps_memb
 			
 			for alg in algs:
 				trial_dict[alg] = []
