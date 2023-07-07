@@ -169,7 +169,7 @@ if __name__ == "__main__":
 	for dim in sketch_dim:
 		print('Dimension %i' % dim)
 
-		sens, means, pca = priv_power_method(f_train, num_iters, dim)
+		sens, means, pca = priv_pca_laplace(f_train, num_iters, dim)
 		f_train_pca = np.matmul(f_train, pca)
 		f_test_pca = np.matmul(f_test, pca)
 		for alg in algs:
@@ -180,15 +180,15 @@ if __name__ == "__main__":
 		for total_eps in total_eps_list:
 			print('Total Eps = %s' % str(total_eps))
 			eps_pca = total_eps / (dim + 2)
-			eps_memb = 1000 #total_eps / (dim + 1)
-			eps_val = total_eps - eps_pca - total_eps / (dim + 2)
+			eps_memb = total_eps / (dim + 2)
+			eps_val = total_eps - eps_pca - eps_memb
 			
 			for alg in algs:
 				trial_dict[alg] = []
 			
 			for trial in range(num_trials):
 				print('Trial %i' % (trial + 1))
-				sens, means, priv_pca = priv_power_method(f_train, num_iters, dim, eps_pca)
+				sens, means, priv_pca = priv_pca_laplace(f_train, num_iters, dim, eps_pca)
 				f_train_priv = np.matmul(0.5 * (np.divide(f_train, np.tile(sens, (f_train.shape[0], 1))) + 1.0) - means, priv_pca)
 				f_test_priv = np.matmul(0.5 * (np.divide(f_test, np.tile(sens, (f_test.shape[0], 1))) + 1.0) - means, priv_pca)
 				# mean_train = np.mean(f_train_priv, axis = 0, keepdims = True)
@@ -215,7 +215,7 @@ if __name__ == "__main__":
 		alg_df = alg_df
 		print(alg_df)
 
-		file = 'covtype67joinperfectmemb_pcalaplace_%s_trials=%i' % (alg.lower(), num_trials)
+		file = 'covtype67join_pcalaplace_%s_trials=%i' % (alg.lower(), num_trials)
 		alg_df.to_csv('%s.csv' % file)
 		shift = -0.25
 		plt.ylim((0.0, 1.0))
